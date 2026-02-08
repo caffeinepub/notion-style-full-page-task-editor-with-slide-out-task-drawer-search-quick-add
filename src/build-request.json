@@ -1,0 +1,92 @@
+{
+  "kind": "build_request",
+  "title": "Fix CSS/theme regression so task drawer and full-page task editor are visible and usable",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-9",
+      "text": "Ensure dark theme CSS variables apply globally so backgrounds, panels, and text colors render correctly across the entire app (including the Task Drawer and full-page Task Page). Do this without modifying any files under frontend/src/hooks/* (immutable paths).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Side menu, new tasks, quick adds, task page ect are all invisible and UI is not looking good. They appear just I cannot see nothing",
+          "Man, everything needs to be displayed and visible for interaction, solid panel. Fix the colours and backgrounds"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When authenticated, the app background uses the intended dark theme (not a light/unstyled page) on every section (Calendar, Projects, Overview, History, Task Page).",
+        "Text, borders, and muted surfaces (bg-background/bg-card/bg-muted, text-foreground/text-muted-foreground) have sufficient contrast and are readable without selecting text.",
+        "Implementation does not require editing any immutable hook files (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, etc.)."
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "text": "Fix the Task Drawer (left Sheet) styling so it always displays as a solid, clearly visible panel with correct background, foreground, borders, and layering; the search input, quick-add input, buttons, and task list items must be visible and interactable.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Side menu invisible I just can see some text in black",
+          "No background so its not displaying correctly and can't view the content",
+          "solid panel. Fix the colours and backgrounds"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Toggling the drawer from the top-left menu button shows a solid panel with a non-transparent background (no 'invisible/blank' drawer).",
+        "Drawer header ('Tasks'), search input, quick-add input/button, and the scrollable task list are all visible with appropriate spacing and contrast.",
+        "The drawer content is not hidden behind other layout layers (no z-index/overlay issues preventing interaction).",
+        "Task list items have visible hover/focus states and readable priority icons (avoid low-contrast icon colors on the chosen background)."
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "text": "Fix the full-page Task Page styling so the editor route displays a solid, readable layout (top bar + content area) with correct backgrounds and readable text, including the long-form rich text editor area.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "task page ect are all invisible",
+          "Specific routes",
+          "No background so its not displaying correctly and can't view the content"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Opening a task shows a full-page view with a clearly visible top bar (close button, project badge, Save button) and a solid background behind content.",
+        "Task title input text is visible and readable, and metadata controls (due date, priority) are readable and clickable.",
+        "The long-form editor area (Quill) has readable text, a visible toolbar, and a visible editor canvas (not transparent on the page background).",
+        "Scrolling within the Task Page works and content is not clipped by overflow/z-index issues."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not modify files in frontend immutablePaths (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*). Compose around them instead.",
+    "Keep the backend unchanged; this request is a UI/CSS visibility regression fix only.",
+    "Use English for any user-facing text."
+  ],
+  "nonGoals": [
+    "Adding new task features or changing task data models/APIs.",
+    "Implementing new authentication providers or any non-Internet-Identity auth changes.",
+    "Redesigning unrelated screens beyond what is necessary to restore visibility/contrast for the drawer and task page."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

@@ -1,0 +1,180 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0% 0% 100%;
+    --foreground: 0% 0% 3.9%;
+    --card: 0% 0% 100%;
+    --card-foreground: 0% 0% 3.9%;
+    --popover: 0% 0% 100%;
+    --popover-foreground: 0% 0% 3.9%;
+    --primary: 62.8% 0.238 29.23;
+    --primary-foreground: 0% 0% 98%;
+    --secondary: 0% 0% 96.1%;
+    --secondary-foreground: 0% 0% 9%;
+    --muted: 0% 0% 96.1%;
+    --muted-foreground: 0% 0% 45.1%;
+    --accent: 0% 0% 96.1%;
+    --accent-foreground: 0% 0% 9%;
+    --destructive: 0% 84.2% 60.2%;
+    --destructive-foreground: 0% 0% 98%;
+    --border: 0% 0% 89.8%;
+    --input: 0% 0% 89.8%;
+    --ring: 62.8% 0.238 29.23;
+    --chart-1: 12% 76% 61%;
+    --chart-2: 173% 58% 39%;
+    --chart-3: 197% 37% 24%;
+    --chart-4: 43% 74% 66%;
+    --chart-5: 27% 87% 67%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 20% 0.015 264.05;
+    --foreground: 95% 0.005 264.05;
+    --card: 22% 0.02 264.05;
+    --card-foreground: 95% 0.005 264.05;
+    --popover: 22% 0.02 264.05;
+    --popover-foreground: 95% 0.005 264.05;
+    --primary: 62.8% 0.238 29.23;
+    --primary-foreground: 20% 0.015 264.05;
+    --secondary: 25% 0.025 264.05;
+    --secondary-foreground: 95% 0.005 264.05;
+    --muted: 25% 0.025 264.05;
+    --muted-foreground: 65% 0.015 264.05;
+    --accent: 28% 0.03 264.05;
+    --accent-foreground: 95% 0.005 264.05;
+    --destructive: 55% 0.22 25;
+    --destructive-foreground: 95% 0.005 264.05;
+    --border: 28% 0.03 264.05;
+    --input: 28% 0.03 264.05;
+    --ring: 62.8% 0.238 29.23;
+    --chart-1: 220% 70% 50%;
+    --chart-2: 160% 60% 45%;
+    --chart-3: 30% 80% 55%;
+    --chart-4: 280% 65% 60%;
+    --chart-5: 340% 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    @apply bg-background text-foreground;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted/30;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/30 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}
+
+.long-form-editor .ql-container {
+  @apply border-0 text-base bg-background;
+  min-height: 400px;
+  font-family: inherit;
+}
+
+.long-form-editor .ql-editor {
+  @apply text-foreground bg-background;
+  min-height: 400px;
+  padding: 1rem 0;
+}
+
+.long-form-editor .ql-editor.ql-blank::before {
+  @apply text-muted-foreground italic;
+  font-style: italic;
+}
+
+.long-form-editor .ql-toolbar {
+  @apply border-0 border-b border-border bg-card;
+  padding: 0.75rem;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.long-form-editor .ql-toolbar button {
+  @apply text-foreground hover:text-primary hover:bg-accent/50;
+  transition: all 0.15s ease;
+}
+
+.long-form-editor .ql-toolbar button.ql-active {
+  @apply text-primary bg-accent;
+}
+
+.long-form-editor .ql-toolbar .ql-stroke {
+  @apply stroke-current;
+}
+
+.long-form-editor .ql-toolbar .ql-fill {
+  @apply fill-current;
+}
+
+.long-form-editor .ql-toolbar .ql-picker-label {
+  @apply text-foreground;
+}
+
+.long-form-editor .ql-toolbar .ql-picker-options {
+  @apply bg-popover border border-border;
+}
+
+.long-form-editor .ql-toolbar .ql-picker-item {
+  @apply text-popover-foreground hover:bg-accent;
+}
+
+.long-form-editor .ql-editor h1 {
+  @apply text-3xl font-bold mb-4 mt-6 text-foreground;
+}
+
+.long-form-editor .ql-editor h2 {
+  @apply text-2xl font-bold mb-3 mt-5 text-foreground;
+}
+
+.long-form-editor .ql-editor h3 {
+  @apply text-xl font-semibold mb-2 mt-4 text-foreground;
+}
+
+.long-form-editor .ql-editor p {
+  @apply mb-3 text-foreground;
+}
+
+.long-form-editor .ql-editor ul,
+.long-form-editor .ql-editor ol {
+  @apply mb-3 pl-6 text-foreground;
+}
+
+.long-form-editor .ql-editor blockquote {
+  @apply border-l-4 border-primary/50 pl-4 italic my-4 text-muted-foreground;
+}
+
+.long-form-editor .ql-editor pre {
+  @apply bg-muted rounded-lg p-4 my-4 overflow-x-auto text-foreground;
+}
+
+.long-form-editor .ql-editor code {
+  @apply bg-muted rounded px-1.5 py-0.5 text-sm text-foreground;
+}
+
+.long-form-editor .ql-editor a {
+  @apply text-primary underline hover:text-primary/80;
+}

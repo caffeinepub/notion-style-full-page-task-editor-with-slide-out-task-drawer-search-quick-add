@@ -1,0 +1,27 @@
+{
+  "name": "Impact Forge",
+  "short_name": "Impact Forge",
+  "description": "A productivity application for project and task management with visual calendar interfaces",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "any",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/assets/generated/favicon-blue-flame-transparent.dim_32x32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/generated/impact-forge-icon-transparent.dim_200x200.png",
+      "sizes": "200x200",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "screenshots": []
+}

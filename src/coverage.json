@@ -1,0 +1,68 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-08T10:15:43.290Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 3,
+    "implemented": 3,
+    "items": [
+      {
+        "id": "REQ-10",
+        "summary": "Fix the Task Drawer (left Sheet) styling so it always displays as a solid, clearly visible panel with correct background, foreground, borders, and layering; the search input, quick-add input, buttons, and task list items must be visible and interactable.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/TaskDrawer.tsx",
+          "frontend/src/index.css"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/TaskDrawer.tsx",
+          "frontend/src/index.css"
+        ]
+      },
+      {
+        "id": "REQ-11",
+        "summary": "Fix the full-page Task Page styling so the editor route displays a solid, readable layout (top bar + content area) with correct backgrounds and readable text, including the long-form rich text editor area.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/TaskPage.tsx",
+          "frontend/src/index.css"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/TaskPage.tsx",
+          "frontend/src/index.css"
+        ]
+      },
+      {
+        "id": "REQ-9",
+        "summary": "Ensure dark theme CSS variables apply globally so backgrounds, panels, and text colors render correctly across the entire app (including the Task Drawer and full-page Task Page). Do this without modifying any files under frontend/src/hooks/* (immutable paths).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/App.tsx",
+          "frontend/src/index.css"
+        ],
+        "matchedFiles": [
+          "frontend/src/App.tsx",
+          "frontend/src/index.css"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/components/TaskDrawer.tsx",
+    "frontend/src/components/TaskPage.tsx",
+    "frontend/src/index.css",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

@@ -1,2 +1,3 @@
-# notion-style-full-page-task-editor-with-slide-out-task-drawer-search-quick-add
-Exported from Caffeine project: Notion-style full-page task editor with slide-out task drawer (search + quick add)
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`
