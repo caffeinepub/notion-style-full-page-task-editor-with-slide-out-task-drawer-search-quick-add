@@ -2,10 +2,9 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-change-the-side-menu-quick-add-flow-in-the-task-drawer-frontend-src-components-taskdrawer-tsx-so-it-does-not-require-any-projects-to-exist-does-not-auto-assign-a-default-project-and-creates-the-task-with-due-date-set-to-today-by-default",
-      "featureTitle": "Change the side-menu quick-add flow in the task drawer (frontend/src/components/TaskDrawer.tsx) so it does not require any projects to exist, does not auto-assign a default project, and creates the task with due date set to today by default.",
+      "featureId": "feature-eliminate-the-completion-toggle-flicker-by-making-task-completion-changes-apply-immediately-optimistic-ui-across-all-ui-locations-that-can-mark-a-task-complete-incomplete-e-g-taskcard-in-day-week-month-views-and-any-other-list-using-react-query-task-caches",
+      "featureTitle": "Eliminate the completion-toggle flicker by making task completion changes apply immediately (optimistic UI) across all UI locations that can mark a task complete/incomplete (e.g., TaskCard in Day/Week/Month views and any other list using React Query task caches).",
       "files": [
-        "frontend/src/components/TaskDrawer.tsx",
         "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
@@ -17,16 +16,14 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-3"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-users-can-assign-a-project-later-for-an-unassigned-task-via-existing-task-editing-ui-by-wiring-the-project-selector-to-the-backend-api-that-updates-a-task-s-project-so-selecting-a-project-actually-persists",
-      "featureTitle": "Ensure users can assign a project later for an unassigned task via existing task editing UI, by wiring the project selector to the backend API that updates a task’s project (so selecting a project actually persists).",
+      "featureId": "feature-update-the-react-query-optimistic-update-logic-for-completion-toggling-so-that-it-synchronously-updates-all-relevant-cached-queries-all-queries-whose-keys-start-with-tasks-and-the-individual-task-taskid-cache-if-present-before-any-potential-refetch-overwrite-can-cause-a-brief-reversion",
+      "featureTitle": "Update the React Query optimistic update logic for completion toggling so that it synchronously updates all relevant cached queries (all queries whose keys start with ['tasks', ...] and the individual ['task', taskId] cache if present) before any potential refetch/overwrite can cause a brief reversion.",
       "files": [
-        "frontend/src/components/TaskCard.tsx",
-        "frontend/src/components/TaskEditDialog.tsx",
         "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
@@ -38,7 +35,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-4"
+        "REQ-2"
       ],
       "confidence": "high"
     }

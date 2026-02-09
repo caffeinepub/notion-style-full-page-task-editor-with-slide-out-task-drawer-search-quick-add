@@ -9,9 +9,9 @@ import Nat "mo:base/Nat";
 import Array "mo:base/Array";
 import Float "mo:base/Float";
 
-import Migration "migration";
 
-(with migration = Migration.run)
+
+
 actor {
   let accessControlState = AccessControl.initState();
 

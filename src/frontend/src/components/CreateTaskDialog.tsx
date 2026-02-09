@@ -31,35 +31,42 @@ export default function CreateTaskDialog({ open, onOpenChange, initialDate }: Cr
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState<Date>(initialDate || new Date());
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('unassigned');
   const [priority, setPriority] = useState<'forge' | 'queue'>('queue');
 
+  // Reset form when dialog opens
   useEffect(() => {
-    if (open && projects && projects.length > 0 && !selectedProjectId) {
-      setSelectedProjectId(projects[0].id.toString());
+    if (open) {
+      setTitle('');
+      setDescription('');
+      setDueDate(initialDate || new Date());
+      setSelectedProjectId('unassigned');
+      setPriority('queue');
     }
-  }, [open, projects, selectedProjectId]);
+  }, [open, initialDate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (title.trim() && selectedProjectId) {
+    if (title.trim()) {
       await createTask.mutateAsync({
         title: title.trim(),
         description: description.trim() || null,
         dueDate: BigInt(dueDate.getTime() * 1000000),
-        projectId: BigInt(selectedProjectId),
+        projectId: selectedProjectId === 'unassigned' ? null : BigInt(selectedProjectId),
         priority,
       });
       setTitle('');
       setDescription('');
       setDueDate(initialDate || new Date());
-      setSelectedProjectId('');
+      setSelectedProjectId('unassigned');
       setPriority('queue');
       onOpenChange(false);
     }
   };
 
-  const selectedProject = projects?.find(p => p.id.toString() === selectedProjectId);
+  const selectedProject = selectedProjectId !== 'unassigned' 
+    ? projects?.find(p => p.id.toString() === selectedProjectId)
+    : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -100,6 +107,11 @@ export default function CreateTaskDialog({ open, onOpenChange, initialDate }: Cr
                 <SelectValue placeholder="Select a project" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="unassigned">
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">No project</span>
+                  </div>
+                </SelectItem>
                 {projects?.map((project) => (
                   <SelectItem key={project.id.toString()} value={project.id.toString()}>
                     <div className="flex items-center gap-2">
@@ -191,7 +203,7 @@ export default function CreateTaskDialog({ open, onOpenChange, initialDate }: Cr
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="h-11">
               Cancel
             </Button>
-            <Button type="submit" disabled={!title.trim() || !selectedProjectId || createTask.isPending} className="h-11">
+            <Button type="submit" disabled={!title.trim() || createTask.isPending} className="h-11">
               {createTask.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

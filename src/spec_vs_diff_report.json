@@ -1,37 +1,45 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-09T08:22:45.801Z",
-  "summary": "Diff implements frontend quick-add creating tasks with null projectId and due date set to today, adds migration to change Task.projectId from Nat to ?Nat, and updates multiple UI components to handle optional project assignment. However, backend API changes required for creating/updating unassigned tasks are not evidenced in the truncated backend diff, and several broad UI/theme redesign changes appear beyond the requested scope.",
+  "generatedAt": "2026-02-09T11:15:52.395Z",
+  "summary": "The diff shows changes in frontend/src/hooks/useQueries.ts plus updates to frontend-file-summaries.txt and project_state.json. However, the useQueries.ts content is truncated before any task-completion mutation/optimistic-update logic is visible, so the requested optimistic cache updates and flicker elimination cannot be confirmed from the provided evidence.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Update the backend Task model and APIs to support tasks with no project assigned (unassigned tasks), preserving permission checks and allowing later assignment/move to a project.",
-      "reason": "The diff shows the Task type changed to `projectId : ?ProjectId` and a migration was added, but the provided `backend/main.mo` snippet is truncated before any task-creation/update API implementations. There is no visible evidence that createTask now accepts null/optional projectId, that existing creation with a project still works, or that an API to assign/move tasks (e.g., updateTaskProject) is implemented with permission checks.",
+      "requirement": "Eliminate the completion-toggle flicker by making task completion changes apply immediately (optimistic UI) across all UI locations that can mark a task complete/incomplete.",
+      "reason": "The only functional file shown is frontend/src/hooks/useQueries.ts, but the diff is truncated before any completion-toggle mutation logic appears. No UI/component changes are shown in the modified files list to verify consistent behavior across all locations.",
       "evidence": [
-        "backend/main.mo (truncated; Task type shown but API implementations not visible)"
+        "frontend/src/hooks/useQueries.ts (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "requirement": "Update React Query optimistic update logic for completion toggling to synchronously update all relevant cached queries (all ['tasks', ...] and the individual ['task', taskId] cache) with rollback on error.",
+      "reason": "The diff excerpt does not include the task completion toggle mutation implementation (onMutate/cancelQueries/setQueriesData/rollback). Without the relevant section of useQueries.ts, there is no direct evidence that all task-list queries and the single-task cache are synchronously updated and rolled back on error.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Broad UI redesigns and visual/theming changes (login screen, profile setup modal, header navigation/branding changes, global CSS palette changes, and multiple view/dialog UX enhancements) beyond fixing quick-add project requirement and default date behavior.",
-      "reason": "BuildRequest non-goals explicitly avoid redesigning overall task/project UX beyond the quick-add and default date fixes, but the diff summary describes multiple unrelated redesigns and enhancements.",
+      "description": "Updates to project tracking metadata (new_feature_requests entries AR-1/AR-2/AR-3) unrelated to implementing the UI flicker fix.",
+      "reason": "The BuildRequest describes a frontend behavior fix; it does not request modifications to project_state.json metadata.",
       "evidence": [
-        "frontend-file-summaries.txt (LoginScreen.tsx, ProfileSetupModal.tsx, Header.tsx, index.css, CreateTaskDialog.tsx, CreateProjectDialog.tsx, ProjectsOverview.tsx, DayView.tsx, WeekView.tsx, MonthView.tsx, EmptyState.tsx, MainContent.tsx, Sidebar.tsx)"
+        "project_state.json"
+      ]
+    },
+    {
+      "description": "Edits to frontend-file-summaries.txt describing broad UI redesigns/components (e.g., login screen redesign, profile modal redesign, header/sidebar changes) not part of the stated flicker-fix requirements.",
+      "reason": "The BuildRequest is narrowly scoped to task completion optimistic updates and explicitly lists non-goals; modifying documentation/summaries to include unrelated UI changes is not requested in the BuildRequest.",
+      "evidence": [
+        "frontend-file-summaries.txt"
       ]
     }
   ],
   "confidence": 0.64,
   "changed_files": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/HistoryPage.tsx",
-    "frontend/src/components/TaskCard.tsx",
-    "frontend/src/components/TaskDrawer.tsx",
-    "frontend/src/components/TaskEditDialog.tsx",
-    "frontend/src/components/TaskPage.tsx",
     "frontend/src/hooks/useQueries.ts",
     "project_state.json"
   ]

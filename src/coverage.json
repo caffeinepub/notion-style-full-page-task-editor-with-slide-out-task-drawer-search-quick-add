@@ -1,75 +1,45 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-09T08:22:45.804Z",
+  "generatedAt": "2026-02-09T11:15:52.397Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
+    "total": 2,
     "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update the backend Task model and APIs to support tasks with no project assigned (unassigned tasks), while preserving existing ownership/permission checks and allowing a project to be assigned later.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Add a conditional Motoko migration (backend/migration.mo) to safely upgrade existing deployed state to the updated Task model that supports unassigned tasks (ensuring existing tasks retain their current project assignment).",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Change the side-menu quick-add flow in the task drawer (frontend/src/components/TaskDrawer.tsx) so it does not require any projects to exist, does not auto-assign a default project, and creates the task with due date set to today by default.",
+        "summary": "Eliminate the completion-toggle flicker by making task completion changes apply immediately (optimistic UI) across all UI locations that can mark a task complete/incomplete (e.g., TaskCard in Day/Week/Month views and any other list using React Query task caches).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/TaskDrawer.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/TaskCard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/TaskDrawer.tsx",
           "frontend/src/hooks/useQueries.ts"
         ]
       },
       {
-        "id": "REQ-4",
-        "summary": "Ensure users can assign a project later for an unassigned task via existing task editing UI, by wiring the project selector to the backend API that updates a task’s project (so selecting a project actually persists).",
+        "id": "REQ-2",
+        "summary": "Update the React Query optimistic update logic for completion toggling so that it synchronously updates all relevant cached queries (all queries whose keys start with ['tasks', ...] and the individual ['task', taskId] cache if present) before any potential refetch/overwrite can cause a brief reversion.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/TaskEditDialog.tsx",
-          "frontend/src/components/TaskCard.tsx"
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/TaskEditDialog.tsx",
-          "frontend/src/components/TaskCard.tsx"
+          "frontend/src/hooks/useQueries.ts"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/HistoryPage.tsx",
-    "frontend/src/components/TaskCard.tsx",
-    "frontend/src/components/TaskDrawer.tsx",
-    "frontend/src/components/TaskEditDialog.tsx",
-    "frontend/src/components/TaskPage.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
     "project_state.json",
     "scratch/component-selection.json",

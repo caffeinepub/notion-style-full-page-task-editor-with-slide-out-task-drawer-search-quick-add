@@ -1,26 +1,28 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Task app: quick-add from side menu should create tasks without requiring a project, default date to today, and remain fast/effective; users can assign a project and change date later.",
+  "summary": "New project",
   "architectural_notes": [
-    "Quick-add task flow (side menu) must not require project assignment; tasks default to no project and date=today, with later edits allowed."
+    "Use optimistic UI updates for task/habit completion to avoid UI reverting briefly (flicker) while awaiting server confirmation."
   ],
-  "known_issues": [],
+  "known_issues": [
+    "Checking a task/habit briefly flickers back to the previous state before settling, across all checkable locations."
+  ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-change-the-side-menu-quick-add-flow-in-the-task-drawer-frontend-src-components-taskdrawer-tsx-so-it-does-not-require-any-projects-to-exist-does-not-auto-assign-a-default-project-and-creates-the-task-with-due-date-set-to-today-by-default",
-      "title": "Change the side-menu quick-add flow in the task drawer (frontend/src/components/TaskDrawer.tsx) so it does not require any projects to exist, does not auto-assign a default project, and creates the task with due date set to today by default.",
+      "id": "feature-eliminate-the-completion-toggle-flicker-by-making-task-completion-changes-apply-immediately-optimistic-ui-across-all-ui-locations-that-can-mark-a-task-complete-incomplete-e-g-taskcard-in-day-week-month-views-and-any-other-list-using-react-query-task-caches",
+      "title": "Eliminate the completion-toggle flicker by making task completion changes apply immediately (optimistic UI) across all UI locations that can mark a task complete/incomplete (e.g., TaskCard in Day/Week/Month views and any other list using React Query task caches).",
       "reqIds": [
-        "REQ-3"
+        "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-ensure-users-can-assign-a-project-later-for-an-unassigned-task-via-existing-task-editing-ui-by-wiring-the-project-selector-to-the-backend-api-that-updates-a-task-s-project-so-selecting-a-project-actually-persists",
-      "title": "Ensure users can assign a project later for an unassigned task via existing task editing UI, by wiring the project selector to the backend API that updates a task’s project (so selecting a project actually persists).",
+      "id": "feature-update-the-react-query-optimistic-update-logic-for-completion-toggling-so-that-it-synchronously-updates-all-relevant-cached-queries-all-queries-whose-keys-start-with-tasks-and-the-individual-task-taskid-cache-if-present-before-any-potential-refetch-overwrite-can-cause-a-brief-reversion",
+      "title": "Update the React Query optimistic update logic for completion toggling so that it synchronously updates all relevant cached queries (all queries whose keys start with ['tasks', ...] and the individual ['task', taskId] cache if present) before any potential refetch/overwrite can cause a brief reversion.",
       "reqIds": [
-        "REQ-4"
+        "REQ-2"
       ],
       "version": 1
     }
@@ -28,28 +30,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Update side-menu quick add: project not mandatory (default none), set task date to today, keep creation fast; allow later project/date edits",
+      "summary": "Fix checkbox/task/habit completion flicker by implementing reliable optimistic UI updates across all places where items can be checked",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Update the backend Task model and APIs to support tasks with no project assigned (unassigned tasks), while preserving existing ownership/permission checks and allowing a project to be assigned later.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Add a conditional Motoko migration (backend/migration.mo) to safely upgrade existing deployed state to the updated Task model that supports unassigned tasks (ensuring existing tasks retain their current project assignment).",
-      "reqIds": [
-        "REQ-2"
-      ],
       "status": "pending"
     }
   ],
-  "projectName": "Make side-menu quick-add create tasks without a project and default due date to today",
+  "projectName": "Fix task completion checkbox flicker with reliable optimistic updates",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

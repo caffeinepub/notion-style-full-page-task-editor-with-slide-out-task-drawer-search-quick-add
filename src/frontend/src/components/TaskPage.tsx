@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useGetTask, useUpdateTask, useUpdateTaskContent, useGetAllProjects } from '../hooks/useQueries';
+import { useGetTask, useUpdateTask, useUpdateTaskContent, useGetAllProjects, useUpdateTaskProject } from '../hooks/useQueries';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { X, Loader2, Save, Calendar as CalendarIcon, Flame, ListTodo } from 'lucide-react';
+import { X, Loader2, Save, Calendar as CalendarIcon, Flame, ListTodo, FolderOpen } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { format } from 'date-fns';
 import LongFormTaskEditor from './LongFormTaskEditor';
@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { cn } from '../lib/utils';
+import { toast } from 'sonner';
 
 interface TaskPageProps {
   taskId: bigint;
@@ -21,11 +22,13 @@ export default function TaskPage({ taskId, onClose }: TaskPageProps) {
   const { data: projects } = useGetAllProjects();
   const updateTask = useUpdateTask();
   const updateContent = useUpdateTaskContent();
+  const updateTaskProject = useUpdateTaskProject();
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [dueDate, setDueDate] = useState<Date>(new Date());
   const [priority, setPriority] = useState<'forge' | 'queue'>('queue');
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('unassigned');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
@@ -34,6 +37,7 @@ export default function TaskPage({ taskId, onClose }: TaskPageProps) {
       setContent(task.longFormContent || '');
       setDueDate(new Date(Number(task.dueDate) / 1000000));
       setPriority((task.priority || 'queue') as 'forge' | 'queue');
+      setSelectedProjectId(task.projectId ? task.projectId.toString() : 'unassigned');
       setHasUnsavedChanges(false);
     }
   }, [task]);
@@ -46,6 +50,25 @@ export default function TaskPage({ taskId, onClose }: TaskPageProps) {
   const handleContentChange = (newContent: string) => {
     setContent(newContent);
     setHasUnsavedChanges(true);
+  };
+
+  const handleProjectChange = async (newProjectId: string) => {
+    if (!task) return;
+    
+    setSelectedProjectId(newProjectId);
+    
+    try {
+      await updateTaskProject.mutateAsync({
+        taskId: task.id,
+        projectId: newProjectId === 'unassigned' ? null : BigInt(newProjectId),
+      });
+      toast.success('Project updated successfully');
+    } catch (error: any) {
+      console.error('Failed to update project:', error);
+      toast.error(error.message || 'Failed to update project');
+      // Revert on error
+      setSelectedProjectId(task.projectId ? task.projectId.toString() : 'unassigned');
+    }
   };
 
   const handleSave = async () => {
@@ -66,8 +89,10 @@ export default function TaskPage({ taskId, onClose }: TaskPageProps) {
       });
 
       setHasUnsavedChanges(false);
+      toast.success('Task saved successfully');
     } catch (error) {
       console.error('Failed to save task:', error);
+      toast.error('Failed to save task');
     }
   };
 
@@ -95,7 +120,9 @@ export default function TaskPage({ taskId, onClose }: TaskPageProps) {
     );
   }
 
-  const project = task.projectId ? projects?.find((p) => p.id.toString() === task.projectId?.toString()) : null;
+  const project = selectedProjectId !== 'unassigned' 
+    ? projects?.find((p) => p.id.toString() === selectedProjectId)
+    : null;
   const isSaving = updateTask.isPending || updateContent.isPending;
 
   return (
@@ -165,6 +192,48 @@ export default function TaskPage({ taskId, onClose }: TaskPageProps) {
 
           {/* Metadata Controls */}
           <div className="flex flex-wrap items-center gap-3 mb-8 pb-6 border-b border-border">
+            {/* Project Selector */}
+            <Select
+              value={selectedProjectId}
+              onValueChange={handleProjectChange}
+              disabled={updateTaskProject.isPending}
+            >
+              <SelectTrigger className="h-9 w-auto min-w-[160px] bg-background text-foreground hover:bg-accent">
+                <SelectValue>
+                  <div className="flex items-center gap-2">
+                    <FolderOpen className="h-4 w-4" />
+                    {project ? (
+                      <>
+                        <span style={{ color: project.color }}>{project.icon}</span>
+                        <span>{project.name}</span>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground">No project</span>
+                    )}
+                  </div>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border">
+                <SelectItem value="unassigned" className="text-popover-foreground hover:bg-accent">
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">No project</span>
+                  </div>
+                </SelectItem>
+                {projects?.map((proj) => (
+                  <SelectItem 
+                    key={proj.id.toString()} 
+                    value={proj.id.toString()}
+                    className="text-popover-foreground hover:bg-accent"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span style={{ color: proj.color }}>{proj.icon}</span>
+                      <span>{proj.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             {/* Due Date */}
             <Popover>
               <PopoverTrigger asChild>

@@ -7,6 +7,7 @@ const RUNTIME_CACHE = 'impact-forge-runtime-v1';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
+  '/manifest.json',
   '/assets/generated/favicon-blue-flame-transparent.dim_32x32.png',
   '/assets/generated/impact-forge-icon-transparent.dim_200x200.png',
 ];
@@ -17,7 +18,11 @@ const sw = self as unknown as ServiceWorkerGlobalScope;
 sw.addEventListener('install', (event: ExtendableEvent) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS);
+      return cache.addAll(PRECACHE_ASSETS).catch((error) => {
+        console.error('Failed to cache assets during install:', error);
+        // Continue even if some assets fail to cache
+        return Promise.resolve();
+      });
     }).then(() => {
       return sw.skipWaiting();
     })
@@ -41,7 +46,7 @@ sw.addEventListener('activate', (event: ExtendableEvent) => {
   );
 });
 
-// Fetch event - network first, fallback to cache
+// Fetch event - cache first for navigation, network first for API
 sw.addEventListener('fetch', (event: FetchEvent) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -56,6 +61,43 @@ sw.addEventListener('fetch', (event: FetchEvent) => {
     return;
   }
 
+  // Handle navigation requests (HTML pages)
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        
+        return fetch(request).then((response) => {
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(RUNTIME_CACHE).then((cache) => {
+              cache.put(request, responseToCache);
+            });
+          }
+          return response;
+        }).catch(() => {
+          // Return cached index.html as fallback for navigation
+          return caches.match('/index.html').then((fallback) => {
+            if (fallback) {
+              return fallback;
+            }
+            return new Response('Offline - please check your connection', {
+              status: 503,
+              statusText: 'Service Unavailable',
+              headers: new Headers({
+                'Content-Type': 'text/html',
+              }),
+            });
+          });
+        });
+      })
+    );
+    return;
+  }
+
+  // Handle other requests (assets, scripts, styles)
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       // Return cached response if available
@@ -86,7 +128,7 @@ sw.addEventListener('fetch', (event: FetchEvent) => {
 
         return response;
       }).catch(() => {
-        // Return offline page or fallback if available
+        // Return offline message for failed requests
         return new Response('Offline - please check your connection', {
           status: 503,
           statusText: 'Service Unavailable',

@@ -1,53 +1,41 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Quick-add unassigned tasks and persist later project assignment",
+  "title": "Fix task completion checkbox flicker via robust React Query optimistic updates",
   "requirements": [
     {
-      "id": "REQ-3",
-      "summary": "Update TaskDrawer side-menu quick-add to create tasks without requiring projects, with default due date set to today.",
+      "id": "REQ-1",
+      "summary": "Ensure task completion toggles update immediately (optimistic UI) without flicker anywhere tasks are checked/unchecked.",
       "acceptanceCriteria": [
-        "Quick-add works even when the user has zero projects.",
-        "Quick-added tasks are created with no project assigned (not auto-assigned to the first project).",
-        "Quick-added tasks default to today’s date (not tomorrow).",
-        "Submitting quick-add clears the input and remains a single-step, fast interaction (Enter or button)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/TaskDrawer.tsx",
-          "operation": "modify",
-          "description": "Adjust quick-add submission to (1) not depend on projects being loaded or existing, (2) pass a null projectId when creating, and (3) default dueDate to today (e.g., end-of-day today) rather than tomorrow; also harden project lookup/rendering so tasks with no projectId do not throw and simply render without a project badge."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Update useCreateTask mutation types and call signature to allow projectId to be null (matching the actor createTask signature), and ensure optimistic task creation stores projectId as undefined when projectId is null so UI can treat it as unassigned."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Persist project assignment changes for unassigned tasks via existing task edit UI using updateTaskProject and refresh task data afterward.",
-      "acceptanceCriteria": [
-        "From an existing task edit surface that shows a Project selector, changing the project and saving persists the new project assignment.",
-        "Unassigned tasks show no project badge/label until a project is assigned.",
-        "Assigning a project to an unassigned task updates task lists/drawer display after save (via React Query invalidation/refetch)."
+        "When clicking a task completion checkbox, the checkbox and any completion-dependent styling (e.g., strikethrough/opacity) updates immediately and does not visually revert to the previous state at any point.",
+        "The fix applies consistently anywhere tasks can be checked/unchecked (not just a single page/component)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a React Query mutation hook for persisting task project changes using the backend capability updateTaskProject (accepting newProjectId as bigint or null) and invalidate/refetch relevant queries (tasks lists and the single-task query) on success/settled."
-        },
-        {
-          "path": "frontend/src/components/TaskEditDialog.tsx",
-          "operation": "modify",
-          "description": "Make the Project selector support an unassigned state (no selection) without crashing when task.projectId is missing; on save, persist core fields via useUpdateTask and persist project changes via the new useUpdateTaskProject hook (including assigning a project to an unassigned task, or clearing assignment), then close and rely on query invalidation to refresh visible task lists/drawer."
+          "description": "Harden useToggleTaskCompletion optimistic update behavior so UI state flips immediately and remains stable while the mutation is in-flight: (1) synchronously apply optimistic changes, (2) cancel in-flight task-related queries to prevent overwrites, (3) rollback on error, (4) refetch after settle to reconcile with backend."
         },
         {
           "path": "frontend/src/components/TaskCard.tsx",
           "operation": "modify",
-          "description": "Harden project badge lookup to handle tasks with no projectId (avoid calling toString on undefined) and ensure unassigned tasks display no project badge/label."
+          "description": "Update TaskCard completion toggle invocation to provide enough information for reliable optimistic updates (e.g., current/next completion state) and ensure the checkbox + completion styling are driven by React Query cache state without any intermediate revert."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Update optimistic completion toggling to synchronously update all task-related React Query caches (all ['tasks', ...] queries and ['task', taskId]) and rollback correctly on failure.",
+      "acceptanceCriteria": [
+        "Toggling completion updates cached task data for: (1) all task list queries (dateRange, project, completion, history, etc. where applicable) and (2) the single-task query cache when it exists.",
+        "No intermediate render occurs where the UI shows the old completion state after the click while the mutation is in-flight.",
+        "If the mutation fails, the UI rolls back to the previous state and remains consistent with the server after the subsequent refetch."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Revise useToggleTaskCompletion onMutate to synchronously update all relevant caches before any refetch can overwrite: update every cached query whose key starts with ['tasks', ...] (including completion/history variants) and also update ['task', taskId] when present; cancel in-flight queries for both ['tasks'] and ['task', taskId] to prevent stale writes; store snapshots for rollback; onError restore snapshots; onSettled invalidate/refetch relevant task queries so final state matches backend."
         }
       ]
     }

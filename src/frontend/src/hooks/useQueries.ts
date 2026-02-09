@@ -96,6 +96,19 @@ export function useGetTasksByDateRange(startDate: Date, endDate: Date) {
   });
 }
 
+export function useGetTasksByProject(projectId: ProjectId) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<Task[]>({
+    queryKey: ['tasks', 'project', projectId.toString()],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getTasksByProject(projectId);
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
 export function useGetTasksByCompletionStatus(completed: boolean) {
   const { actor, isFetching } = useActor();
 
@@ -157,7 +170,7 @@ export function useCreateTask() {
           longFormContent: undefined,
           dueDate: newTask.dueDate,
           completed: false,
-          projectId: newTask.projectId || undefined,
+          projectId: newTask.projectId === null ? undefined : newTask.projectId,
           createdAt: BigInt(Date.now() * 1000000),
           owner: {} as any,
           completionDate: undefined,
@@ -225,7 +238,48 @@ export function useUpdateTaskProject() {
       if (!actor) throw new Error('Actor not available');
       return actor.updateTaskProject(taskId, projectId);
     },
-    onSuccess: (_data, variables) => {
+    onMutate: async ({ taskId, projectId }) => {
+      // Cancel outgoing queries
+      await queryClient.cancelQueries({ queryKey: ['task', taskId.toString()] });
+      await queryClient.cancelQueries({ queryKey: ['tasks'] });
+
+      // Snapshot previous values
+      const previousTask = queryClient.getQueryData<Task>(['task', taskId.toString()]);
+      const previousTasks = queryClient.getQueriesData({ queryKey: ['tasks'] });
+
+      // Optimistically update task
+      queryClient.setQueryData<Task>(['task', taskId.toString()], (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          projectId: projectId === null ? undefined : projectId,
+        };
+      });
+
+      // Optimistically update task lists
+      queryClient.setQueriesData<Task[]>({ queryKey: ['tasks'] }, (old) => {
+        if (!old) return old;
+        return old.map((task) =>
+          task.id.toString() === taskId.toString()
+            ? { ...task, projectId: projectId === null ? undefined : projectId }
+            : task
+        );
+      });
+
+      return { previousTask, previousTasks };
+    },
+    onError: (_err, variables, context) => {
+      // Rollback on error
+      if (context?.previousTask) {
+        queryClient.setQueryData(['task', variables.taskId.toString()], context.previousTask);
+      }
+      if (context?.previousTasks) {
+        context.previousTasks.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
+    onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['task', variables.taskId.toString()] });
     },
@@ -273,30 +327,57 @@ export function useToggleTaskCompletion() {
       return actor.toggleTaskCompletion(taskId);
     },
     onMutate: async (taskId) => {
+      // Cancel all in-flight queries for tasks to prevent race conditions
       await queryClient.cancelQueries({ queryKey: ['tasks'] });
+      await queryClient.cancelQueries({ queryKey: ['task', taskId.toString()] });
 
+      // Snapshot previous state for rollback
+      const previousTask = queryClient.getQueryData<Task>(['task', taskId.toString()]);
       const previousTasks = queryClient.getQueriesData({ queryKey: ['tasks'] });
 
+      const now = BigInt(Date.now() * 1000000);
+
+      // Optimistically update the single task query cache
+      queryClient.setQueryData<Task>(['task', taskId.toString()], (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          completed: !old.completed,
+          completionDate: !old.completed ? now : undefined,
+        };
+      });
+
+      // Optimistically update all task list queries
       queryClient.setQueriesData<Task[]>({ queryKey: ['tasks'] }, (old) => {
         if (!old) return old;
         return old.map((task) =>
           task.id.toString() === taskId.toString()
-            ? { ...task, completed: !task.completed }
+            ? {
+                ...task,
+                completed: !task.completed,
+                completionDate: !task.completed ? now : undefined,
+              }
             : task
         );
       });
 
-      return { previousTasks };
+      return { previousTask, previousTasks };
     },
-    onError: (_err, _taskId, context) => {
+    onError: (_err, taskId, context) => {
+      // Rollback on error
+      if (context?.previousTask) {
+        queryClient.setQueryData(['task', taskId.toString()], context.previousTask);
+      }
       if (context?.previousTasks) {
         context.previousTasks.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
         });
       }
     },
-    onSettled: () => {
+    onSettled: (_data, _error, taskId) => {
+      // Refetch to ensure consistency with backend
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['task', taskId.toString()] });
     },
   });
 }
@@ -327,14 +408,29 @@ export function useGetOverviewData() {
   });
 }
 
-export function useGetTasksByProject(projectId: ProjectId) {
+export function useSaveUserPreferences() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (preferences: UserPreferences) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.saveUserPreferences(preferences);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userPreferences'] });
+    },
+  });
+}
+
+export function useGetUserPreferences() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<Task[]>({
-    queryKey: ['tasks', 'project', projectId.toString()],
+  return useQuery<UserPreferences | null>({
+    queryKey: ['userPreferences'],
     queryFn: async () => {
-      if (!actor) return [];
-      return actor.getTasksByProject(projectId);
+      if (!actor) return null;
+      return actor.getUserPreferences();
     },
     enabled: !!actor && !isFetching,
   });

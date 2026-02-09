@@ -1,113 +1,54 @@
 {
   "kind": "build_request",
-  "title": "Make side-menu quick-add create tasks without a project and default due date to today",
+  "title": "Fix task completion checkbox flicker with reliable optimistic updates",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the backend Task model and APIs to support tasks with no project assigned (unassigned tasks), while preserving existing ownership/permission checks and allowing a project to be assigned later.",
-      "target": "backend",
+      "text": "Eliminate the completion-toggle flicker by making task completion changes apply immediately (optimistic UI) across all UI locations that can mark a task complete/incomplete (e.g., TaskCard in Day/Week/Month views and any other list using React Query task caches).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7",
-          "msg-8",
-          "msg-9"
+          "msg-1"
         ],
         "quotes": [
-          "shouldnt be mandatory to add a project to the task, the quick add tasks shouldnt be created with a project."
+          "i click, it changes as it should, it flickers to the original, then returns to what should be, so i want to remove this flicker brother"
         ]
       },
       "acceptanceCriteria": [
-        "Backend can create a task without providing a valid existing project ID.",
-        "Existing task creation with a project continues to work as before.",
-        "Backend provides an API to assign/move a task to a project after creation (may reuse/extend existing updateTaskProject behavior).",
-        "All permission/ownership checks remain enforced for creating tasks and assigning/moving tasks to projects."
+        "When clicking a task completion checkbox, the checkbox and any completion-dependent styling (e.g., strikethrough/opacity) updates immediately and does not visually revert to the previous state at any point.",
+        "The fix applies consistently anywhere tasks can be checked/unchecked (not just a single page/component)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add a conditional Motoko migration (backend/migration.mo) to safely upgrade existing deployed state to the updated Task model that supports unassigned tasks (ensuring existing tasks retain their current project assignment).",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-7",
-          "msg-8",
-          "msg-9"
-        ],
-        "quotes": [
-          "the quick add tasks shouldnt be created with a project."
-        ]
-      },
-      "acceptanceCriteria": [
-        "On upgrade, existing tasks keep their previous project assignment values.",
-        "No data loss occurs for projects, tasks, or user data after upgrade.",
-        "If no schema/state changes are ultimately needed, migration is not generated (conditional migration policy)."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Change the side-menu quick-add flow in the task drawer (frontend/src/components/TaskDrawer.tsx) so it does not require any projects to exist, does not auto-assign a default project, and creates the task with due date set to today by default.",
+      "text": "Update the React Query optimistic update logic for completion toggling so that it synchronously updates all relevant cached queries (all queries whose keys start with ['tasks', ...] and the individual ['task', taskId] cache if present) before any potential refetch/overwrite can cause a brief reversion.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7",
-          "msg-8",
-          "msg-9"
+          "msg-1"
         ],
         "quotes": [
-          "shouldnt be mandatory to add a project to the task, the quick add tasks shouldnt be created with a project.",
-          "make sure the quick creation is fast and effective, and that it creates on the same date as today",
-          "1- its the feature you added on the isde menu"
+          "i want to have optimistic, which i think it should be there already but need to fix it\nHappens on all places"
         ]
       },
       "acceptanceCriteria": [
-        "Quick-add works even when the user has zero projects.",
-        "Quick-added tasks are created with no project assigned (not auto-assigned to the first project).",
-        "Quick-added tasks default to today’s date (not tomorrow).",
-        "Submitting quick-add clears the input and remains a single-step, fast interaction (Enter or button)."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Ensure users can assign a project later for an unassigned task via existing task editing UI, by wiring the project selector to the backend API that updates a task’s project (so selecting a project actually persists).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-8"
-        ],
-        "quotes": [
-          "i can add projects later"
-        ]
-      },
-      "acceptanceCriteria": [
-        "From an existing task edit surface that shows a Project selector, changing the project and saving persists the new project assignment.",
-        "Unassigned tasks show no project badge/label until a project is assigned.",
-        "Assigning a project to an unassigned task updates task lists/drawer display after save (via React Query invalidation/refetch)."
+        "Toggling completion updates cached task data for: (1) all task list queries (dateRange, project, completion, history, etc. where applicable) and (2) the single-task query cache when it exists.",
+        "No intermediate render occurs where the UI shows the old completion state after the click while the mutation is in-flight.",
+        "If the mutation fails, the UI rolls back to the previous state and remains consistent with the server after the subsequent refetch."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo).",
-    "Generate backend/migration.mo only if required for a state upgrade (conditional migration policy).",
-    "Do not modify files under frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui."
+    "Do not modify files under frontend immutablePaths (e.g., frontend/src/hooks/useActor.ts, frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/main.tsx, frontend/src/components/ui).",
+    "Backend remains single-actor; do not introduce new canisters/services."
   ],
   "nonGoals": [
-    "Redesigning the overall task/project UX beyond fixing quick-add project requirement and default date behavior.",
-    "Adding third-party integrations or authentication beyond Internet Identity.",
-    "Implementing real-time sync or push updates."
+    "Building a new Habit page or adding new habit features.",
+    "Changing backend task-completion semantics or adding new backend endpoints."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }
