@@ -29,7 +29,8 @@ export default function HistoryPage({ onTaskSelect }: HistoryPageProps) {
     : [];
 
   const getProjectForTask = (task: Task) => {
-    return projects?.find((p) => p.id.toString() === task.projectId.toString());
+    if (!task.projectId) return null;
+    return projects?.find((p) => p.id.toString() === task.projectId?.toString());
   };
 
   const handleTaskClick = (taskId: bigint) => {

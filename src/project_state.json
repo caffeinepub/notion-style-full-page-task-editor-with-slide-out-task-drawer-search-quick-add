@@ -1,85 +1,26 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 5,
-  "summary": "Task management app: add Notion-style full-page task editor (one page per task) plus a left slide-out side menu with always-visible top-left toggle, searchable/scrollable task list, and ultra-fast quick-add to create many tasks via Enter.",
+  "projectStateVersion": 3,
+  "summary": "Task app: quick-add from side menu should create tasks without requiring a project, default date to today, and remain fast/effective; users can assign a project and change date later.",
   "architectural_notes": [
-    "Introduce full-page task route/page (e.g., /task/:id) that loads a task and edits its long-form content.",
-    "Side menu is a toggleable left drawer accessible via persistent top-left button; includes searchable scrollable task list and quick-add."
+    "Quick-add task flow (side menu) must not require project assignment; tasks default to no project and date=today, with later edits allowed."
   ],
-  "known_issues": [
-    "UI/CSS regression: side menu, quick-add, new tasks, and full-page task route render but are effectively invisible/unusable due to missing/incorrect backgrounds/colors (solid panel styling needed)."
-  ],
+  "known_issues": [],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-add-a-full-page-task-route-view-so-each-task-can-be-opened-and-edited-on-its-own-page-notion-style-including-a-large-markdown-rich-editor-area-for-long-form-task-content",
-      "title": "Add a full-page task route/view so each task can be opened and edited on its own page (Notion-style), including a large markdown/rich editor area for long-form task content.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-create-a-left-slide-out-side-menu-task-drawer-that-can-be-opened-closed-via-an-always-visible-top-left-toggle-button-and-that-contains-1-a-search-input-2-a-scrollable-list-of-all-tasks-and-3-a-super-fast-quick-add-input-that-creates-a-new-independent-task-on-enter-without-opening-the-full-page-editor",
-      "title": "Create a left slide-out side menu (task drawer) that can be opened/closed via an always-visible top-left toggle button, and that contains: (1) a search input, (2) a scrollable list of all tasks, and (3) a super-fast quick-add input that creates a new independent task on Enter without opening the full-page editor.",
+      "id": "feature-change-the-side-menu-quick-add-flow-in-the-task-drawer-frontend-src-components-taskdrawer-tsx-so-it-does-not-require-any-projects-to-exist-does-not-auto-assign-a-default-project-and-creates-the-task-with-due-date-set-to-today-by-default",
+      "title": "Change the side-menu quick-add flow in the task drawer (frontend/src/components/TaskDrawer.tsx) so it does not require any projects to exist, does not auto-assign a default project, and creates the task with due date set to today by default.",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
     },
     {
-      "id": "feature-enable-fast-navigation-between-tasks-from-the-task-drawer-by-selecting-a-task-in-the-list-to-open-that-task-s-full-page-view",
-      "title": "Enable fast navigation between tasks from the task drawer by selecting a task in the list to open that task’s full-page view.",
+      "id": "feature-ensure-users-can-assign-a-project-later-for-an-unassigned-task-via-existing-task-editing-ui-by-wiring-the-project-selector-to-the-backend-api-that-updates-a-task-s-project-so-selecting-a-project-actually-persists",
+      "title": "Ensure users can assign a project later for an unassigned task via existing task editing UI, by wiring the project selector to the backend API that updates a task’s project (so selecting a project actually persists).",
       "reqIds": [
         "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-existing-task-entry-points-so-users-can-reach-the-full-page-task-view-with-minimal-friction-from-the-current-ui-e-g-task-cards-task-lists-while-preserving-the-ability-to-do-quick-edits-if-that-still-exists",
-      "title": "Update existing task entry points so users can reach the full-page task view with minimal friction from the current UI (e.g., task cards / task lists), while preserving the ability to do quick edits if that still exists.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-frontend-react-query-hooks-and-frontend-types-usage-to-support-fetching-and-saving-the-new-long-form-task-content-field-including-invalidation-so-the-full-page-editor-shows-saved-content-after-updates",
-      "title": "Update frontend React Query hooks and frontend types/usage to support fetching and saving the new long-form task content field (including invalidation so the full-page editor shows saved content after updates).",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-coherent-visual-theme-for-the-new-full-page-editor-and-task-drawer-colors-typography-spacing-and-interaction-states-and-apply-it-consistently-across-these-new-surfaces-without-introducing-blue-purple-as-the-primary-theme-colors",
-      "title": "Add a coherent visual theme for the new full-page editor and task drawer (colors, typography, spacing, and interaction states) and apply it consistently across these new surfaces without introducing blue/purple as the primary theme colors.",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-dark-theme-css-variables-apply-globally-so-backgrounds-panels-and-text-colors-render-correctly-across-the-entire-app-including-the-task-drawer-and-full-page-task-page-do-this-without-modifying-any-files-under-frontend-src-hooks-immutable-paths",
-      "title": "Ensure dark theme CSS variables apply globally so backgrounds, panels, and text colors render correctly across the entire app (including the Task Drawer and full-page Task Page). Do this without modifying any files under frontend/src/hooks/* (immutable paths).",
-      "reqIds": [
-        "REQ-9"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-fix-the-task-drawer-left-sheet-styling-so-it-always-displays-as-a-solid-clearly-visible-panel-with-correct-background-foreground-borders-and-layering-the-search-input-quick-add-input-buttons-and-task-list-items-must-be-visible-and-interactable",
-      "title": "Fix the Task Drawer (left Sheet) styling so it always displays as a solid, clearly visible panel with correct background, foreground, borders, and layering; the search input, quick-add input, buttons, and task list items must be visible and interactable.",
-      "reqIds": [
-        "REQ-10"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-fix-the-full-page-task-page-styling-so-the-editor-route-displays-a-solid-readable-layout-top-bar-content-area-with-correct-backgrounds-and-readable-text-including-the-long-form-rich-text-editor-area",
-      "title": "Fix the full-page Task Page styling so the editor route displays a solid, readable layout (top bar + content area) with correct backgrounds and readable text, including the long-form rich text editor area.",
-      "reqIds": [
-        "REQ-11"
       ],
       "version": 1
     }
@@ -87,46 +28,28 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Notion-style full-page task view/editor (one page per task) with markdown/rich editing and persistent task content field",
+      "summary": "Update side-menu quick add: project not mandatory (default none), set task date to today, keep creation fast; allow later project/date edits",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Left slide-out side menu with always-visible top-left toggle button and scrollable list of all tasks",
-      "reqIds": [],
+      "summary": "Update the backend Task model and APIs to support tasks with no project assigned (unassigned tasks), while preserving existing ownership/permission checks and allowing a project to be assigned later.",
+      "reqIds": [
+        "REQ-1"
+      ],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "Task search/filter inside side menu for fast navigation between tasks",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Ultra-fast quick-add input in side menu: press Enter to create a new independent task without opening the full page",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Extend the backend Task data model to persist a long-form task content field (separate from the existing short description) and provide backend APIs to read and update this content for a task with the same ownership/permission checks as other task updates.",
+      "summary": "Add a conditional Motoko migration (backend/migration.mo) to safely upgrade existing deployed state to the updated Task model that supports unassigned tasks (ensuring existing tasks retain their current project assignment).",
       "reqIds": [
         "REQ-2"
       ],
       "status": "pending"
-    },
-    {
-      "id": "AR-12",
-      "summary": "If the Task data model is changed in a way that affects stable storage across upgrades, add a conditional Motoko migration (backend/migration.mo) so existing deployed state can be upgraded safely.",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "status": "pending"
     }
   ],
-  "projectName": "Notion-style full-page task editor with slide-out task drawer (search + quick add)",
+  "projectName": "Make side-menu quick-add create tasks without a project and default due date to today",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

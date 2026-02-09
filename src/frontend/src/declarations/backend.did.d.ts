@@ -51,7 +51,7 @@ export interface Task {
   'dueDate' : Time,
   'description' : [] | [string],
   'longFormContent' : [] | [string],
-  'projectId' : ProjectId,
+  'projectId' : [] | [ProjectId],
   'priority' : string,
 }
 export type TaskId = bigint;
@@ -75,7 +75,7 @@ export interface _SERVICE {
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createProject' : ActorMethod<[string, string, string], ProjectId>,
   'createTask' : ActorMethod<
-    [string, [] | [string], Time, ProjectId, string],
+    [string, [] | [string], Time, [] | [ProjectId], string],
     TaskId
   >,
   'deleteProject' : ActorMethod<[ProjectId], undefined>,
@@ -103,7 +103,7 @@ export interface _SERVICE {
     undefined
   >,
   'updateTaskContent' : ActorMethod<[TaskId, string], undefined>,
-  'updateTaskProject' : ActorMethod<[TaskId, ProjectId], undefined>,
+  'updateTaskProject' : ActorMethod<[TaskId, [] | [ProjectId]], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

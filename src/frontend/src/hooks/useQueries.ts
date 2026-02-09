@@ -137,7 +137,7 @@ export function useCreateTask() {
       title: string;
       description: string | null;
       dueDate: bigint;
-      projectId: ProjectId;
+      projectId: ProjectId | null;
       priority: string;
     }) => {
       if (!actor) throw new Error('Actor not available');
@@ -157,7 +157,7 @@ export function useCreateTask() {
           longFormContent: undefined,
           dueDate: newTask.dueDate,
           completed: false,
-          projectId: newTask.projectId,
+          projectId: newTask.projectId || undefined,
           createdAt: BigInt(Date.now() * 1000000),
           owner: {} as any,
           completionDate: undefined,
@@ -202,6 +202,28 @@ export function useUpdateTask() {
     }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.updateTask(taskId, title, description, dueDate, priority);
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['task', variables.taskId.toString()] });
+    },
+  });
+}
+
+export function useUpdateTaskProject() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      taskId,
+      projectId,
+    }: {
+      taskId: TaskId;
+      projectId: ProjectId | null;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateTaskProject(taskId, projectId);
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });

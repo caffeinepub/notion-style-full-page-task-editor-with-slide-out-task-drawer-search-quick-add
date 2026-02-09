@@ -2,31 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-ensure-dark-theme-css-variables-apply-globally-so-backgrounds-panels-and-text-colors-render-correctly-across-the-entire-app-including-the-task-drawer-and-full-page-task-page-do-this-without-modifying-any-files-under-frontend-src-hooks-immutable-paths",
-      "featureTitle": "Ensure dark theme CSS variables apply globally so backgrounds, panels, and text colors render correctly across the entire app (including the Task Drawer and full-page Task Page). Do this without modifying any files under frontend/src/hooks/* (immutable paths).",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/index.css"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-9"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-fix-the-task-drawer-left-sheet-styling-so-it-always-displays-as-a-solid-clearly-visible-panel-with-correct-background-foreground-borders-and-layering-the-search-input-quick-add-input-buttons-and-task-list-items-must-be-visible-and-interactable",
-      "featureTitle": "Fix the Task Drawer (left Sheet) styling so it always displays as a solid, clearly visible panel with correct background, foreground, borders, and layering; the search input, quick-add input, buttons, and task list items must be visible and interactable.",
+      "featureId": "feature-change-the-side-menu-quick-add-flow-in-the-task-drawer-frontend-src-components-taskdrawer-tsx-so-it-does-not-require-any-projects-to-exist-does-not-auto-assign-a-default-project-and-creates-the-task-with-due-date-set-to-today-by-default",
+      "featureTitle": "Change the side-menu quick-add flow in the task drawer (frontend/src/components/TaskDrawer.tsx) so it does not require any projects to exist, does not auto-assign a default project, and creates the task with due date set to today by default.",
       "files": [
         "frontend/src/components/TaskDrawer.tsx",
-        "frontend/src/index.css"
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@1.0.1",
@@ -37,16 +17,17 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-10"
+        "REQ-3"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-fix-the-full-page-task-page-styling-so-the-editor-route-displays-a-solid-readable-layout-top-bar-content-area-with-correct-backgrounds-and-readable-text-including-the-long-form-rich-text-editor-area",
-      "featureTitle": "Fix the full-page Task Page styling so the editor route displays a solid, readable layout (top bar + content area) with correct backgrounds and readable text, including the long-form rich text editor area.",
+      "featureId": "feature-ensure-users-can-assign-a-project-later-for-an-unassigned-task-via-existing-task-editing-ui-by-wiring-the-project-selector-to-the-backend-api-that-updates-a-task-s-project-so-selecting-a-project-actually-persists",
+      "featureTitle": "Ensure users can assign a project later for an unassigned task via existing task editing UI, by wiring the project selector to the backend API that updates a task’s project (so selecting a project actually persists).",
       "files": [
-        "frontend/src/components/TaskPage.tsx",
-        "frontend/src/index.css"
+        "frontend/src/components/TaskCard.tsx",
+        "frontend/src/components/TaskEditDialog.tsx",
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@1.0.1",
@@ -57,7 +38,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-11"
+        "REQ-4"
       ],
       "confidence": "high"
     }

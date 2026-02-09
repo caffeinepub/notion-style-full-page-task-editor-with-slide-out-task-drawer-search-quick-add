@@ -1,48 +1,38 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T10:15:43.287Z",
-  "summary": "Diff implements global dark theme application via adding the `dark` class on the root element and expanding global CSS variables/styles, plus adds/adjusts Task Drawer, Task Page, and Quill editor theming for visibility. However, some requested UI-only scope constraints appear to be exceeded (unrelated UI redesigns and hook changes referenced in summaries), and Task Page scrolling behavior cannot be fully verified from the truncated diff.",
+  "generatedAt": "2026-02-09T08:22:45.801Z",
+  "summary": "Diff implements frontend quick-add creating tasks with null projectId and due date set to today, adds migration to change Task.projectId from Nat to ?Nat, and updates multiple UI components to handle optional project assignment. However, backend API changes required for creating/updating unassigned tasks are not evidenced in the truncated backend diff, and several broad UI/theme redesign changes appear beyond the requested scope.",
   "missing_requirements": [
     {
-      "id": "REQ-11",
-      "requirement": "Scrolling within the Task Page works and content is not clipped by overflow/z-index issues.",
-      "reason": "The Task Page root container is set to `overflow-hidden` (`<main className=\"... overflow-hidden\">`). The diff is truncated before showing any internal scroll container, so it is not verifiable that scrolling is enabled for the editor/content area and not clipped.",
+      "id": "REQ-1",
+      "requirement": "Update the backend Task model and APIs to support tasks with no project assigned (unassigned tasks), preserving permission checks and allowing later assignment/move to a project.",
+      "reason": "The diff shows the Task type changed to `projectId : ?ProjectId` and a migration was added, but the provided `backend/main.mo` snippet is truncated before any task-creation/update API implementations. There is no visible evidence that createTask now accepts null/optional projectId, that existing creation with a project still works, or that an API to assign/move tasks (e.g., updateTaskProject) is implemented with permission checks.",
       "evidence": [
-        "frontend/src/components/TaskPage.tsx"
+        "backend/main.mo (truncated; Task type shown but API implementations not visible)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Service worker registration changes/logging in App component.",
-      "reason": "BuildRequest is a UI/CSS visibility regression fix only and explicitly says to keep backend unchanged; service worker registration is not mentioned as part of the required CSS/theme fixes.",
+      "description": "Broad UI redesigns and visual/theming changes (login screen, profile setup modal, header navigation/branding changes, global CSS palette changes, and multiple view/dialog UX enhancements) beyond fixing quick-add project requirement and default date behavior.",
+      "reason": "BuildRequest non-goals explicitly avoid redesigning overall task/project UX beyond the quick-add and default date fixes, but the diff summary describes multiple unrelated redesigns and enhancements.",
       "evidence": [
-        "frontend/src/App.tsx"
-      ]
-    },
-    {
-      "description": "Backend-operation React Query hook expansions (e.g., new useGetTask/useUpdateTaskContent) referenced as modified.",
-      "reason": "Non-goals include adding new task features or changing task data models/APIs; the diff summary text claims hook changes to support full-page editor persistence, which goes beyond a pure UI/CSS visibility regression fix request.",
-      "evidence": [
-        "frontend-file-summaries.txt (mentions frontend/src/hooks/useQueries.ts modifications)"
-      ]
-    },
-    {
-      "description": "Redesign of Login screen and Profile setup modal for brighter/white text and improved contrast.",
-      "reason": "Non-goals include redesigning unrelated screens beyond what is necessary to restore visibility/contrast for the drawer and task page; login/profile screens are not part of REQ-9/10/11 scope.",
-      "evidence": [
-        "frontend-file-summaries.txt (mentions frontend/src/components/LoginScreen.tsx and frontend/src/components/ProfileSetupModal.tsx redesigns)"
+        "frontend-file-summaries.txt (LoginScreen.tsx, ProfileSetupModal.tsx, Header.tsx, index.css, CreateTaskDialog.tsx, CreateProjectDialog.tsx, ProjectsOverview.tsx, DayView.tsx, WeekView.tsx, MonthView.tsx, EmptyState.tsx, MainContent.tsx, Sidebar.tsx)"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.64,
   "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
+    "frontend/src/components/HistoryPage.tsx",
+    "frontend/src/components/TaskCard.tsx",
     "frontend/src/components/TaskDrawer.tsx",
+    "frontend/src/components/TaskEditDialog.tsx",
     "frontend/src/components/TaskPage.tsx",
-    "frontend/src/index.css",
+    "frontend/src/hooks/useQueries.ts",
     "project_state.json"
   ]
 }

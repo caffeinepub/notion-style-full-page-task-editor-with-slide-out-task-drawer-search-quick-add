@@ -29,18 +29,16 @@ export default function TaskDrawer({ isOpen, onOpenChange, onTaskSelect }: TaskD
 
   const handleQuickAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!quickAddValue.trim() || !projects || projects.length === 0) return;
+    if (!quickAddValue.trim()) return;
 
-    const defaultProject = projects[0];
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(23, 59, 59, 999);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
 
     await createTask.mutateAsync({
       title: quickAddValue.trim(),
       description: null,
-      dueDate: BigInt(tomorrow.getTime() * 1000000),
-      projectId: defaultProject.id,
+      dueDate: BigInt(today.getTime() * 1000000),
+      projectId: null,
       priority: 'queue',
     });
 
@@ -52,7 +50,8 @@ export default function TaskDrawer({ isOpen, onOpenChange, onTaskSelect }: TaskD
   };
 
   const getProjectForTask = (task: Task) => {
-    return projects?.find((p) => p.id.toString() === task.projectId.toString());
+    if (!task.projectId) return null;
+    return projects?.find((p) => p.id.toString() === task.projectId?.toString());
   };
 
   return (

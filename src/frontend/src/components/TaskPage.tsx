@@ -95,7 +95,7 @@ export default function TaskPage({ taskId, onClose }: TaskPageProps) {
     );
   }
 
-  const project = projects?.find((p) => p.id.toString() === task.projectId.toString());
+  const project = task.projectId ? projects?.find((p) => p.id.toString() === task.projectId?.toString()) : null;
   const isSaving = updateTask.isPending || updateContent.isPending;
 
   return (

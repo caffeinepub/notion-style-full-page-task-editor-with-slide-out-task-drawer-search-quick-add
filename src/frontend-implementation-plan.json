@@ -1,70 +1,53 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Restore global dark theme variables and fix Task Drawer / Task Page visibility",
+  "title": "Quick-add unassigned tasks and persist later project assignment",
   "requirements": [
     {
-      "id": "REQ-9",
-      "summary": "Apply dark theme CSS variables globally (including Radix portal content) so all screens use intended dark surfaces and readable text without editing immutable hook files.",
+      "id": "REQ-3",
+      "summary": "Update TaskDrawer side-menu quick-add to create tasks without requiring projects, with default due date set to today.",
       "acceptanceCriteria": [
-        "When authenticated, the app background uses the intended dark theme (not a light/unstyled page) on every section (Calendar, Projects, Overview, History, Task Page).",
-        "Text, borders, and muted surfaces (bg-background/bg-card/bg-muted, text-foreground/text-muted-foreground) have sufficient contrast and are readable without selecting text.",
-        "Implementation does not require editing any immutable hook files (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, etc.)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Ensure the dark theme class is applied at the document level (e.g., html/body) so Tailwind CSS variables resolve for the entire app, including any portal-rendered UI (e.g., drawers/popovers). Keep all logic outside immutable hook files. (Uses shadcn-ui theming conventions via Tailwind darkMode: 'class'; Verify the component's usage instructions before implementing.)"
-        },
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Adjust global theme variable scoping so dark theme variables apply when the dark class is on html/:root/body (not only on a nested div). Add/strengthen base background/text application to guarantee readable defaults across all routes and portal layers. (Uses shadcn-ui/Tailwind CSS variable theming; Verify the component's usage instructions before implementing.)"
-        }
-      ]
-    },
-    {
-      "id": "REQ-10",
-      "summary": "Make the left Task Drawer render as a solid, layered panel with correct background/foreground/borders so inputs, buttons, and task items are visible and interactable.",
-      "acceptanceCriteria": [
-        "Toggling the drawer from the top-left menu button shows a solid panel with a non-transparent background (no 'invisible/blank' drawer).",
-        "Drawer header ('Tasks'), search input, quick-add input/button, and the scrollable task list are all visible with appropriate spacing and contrast.",
-        "The drawer content is not hidden behind other layout layers (no z-index/overlay issues preventing interaction).",
-        "Task list items have visible hover/focus states and readable priority icons (avoid low-contrast icon colors on the chosen background)."
+        "Quick-add works even when the user has zero projects.",
+        "Quick-added tasks are created with no project assigned (not auto-assigned to the first project).",
+        "Quick-added tasks default to today’s date (not tomorrow).",
+        "Submitting quick-add clears the input and remains a single-step, fast interaction (Enter or button)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/TaskDrawer.tsx",
           "operation": "modify",
-          "description": "Update SheetContent and section container classNames to enforce a solid panel surface (bg-card/text-card-foreground), visible borders, and appropriate layering (z-index) so the drawer is always visible and interactive. Ensure header/quick-add areas use non-transparent surfaces and that list item hover/focus states are clearly visible on the chosen background. (Uses shadcn-ui Sheet, Input, Button, ScrollArea, Badge components for consistent styling; Verify the component's usage instructions before implementing.)"
+          "description": "Adjust quick-add submission to (1) not depend on projects being loaded or existing, (2) pass a null projectId when creating, and (3) default dueDate to today (e.g., end-of-day today) rather than tomorrow; also harden project lookup/rendering so tasks with no projectId do not throw and simply render without a project badge."
         },
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add any needed global overrides for portal/sheet layering or background defaults (only if required after TaskDrawer class updates), ensuring drawer surfaces are not transparent and maintain contrast across dark theme variables. (Uses shadcn-ui/Tailwind CSS theming approach; Verify the component's usage instructions before implementing.)"
+          "description": "Update useCreateTask mutation types and call signature to allow projectId to be null (matching the actor createTask signature), and ensure optimistic task creation stores projectId as undefined when projectId is null so UI can treat it as unassigned."
         }
       ]
     },
     {
-      "id": "REQ-11",
-      "summary": "Make the full-page Task Page editor route render with solid backgrounds, readable text, and a visible Quill toolbar/editor canvas without overflow/z-index clipping.",
+      "id": "REQ-4",
+      "summary": "Persist project assignment changes for unassigned tasks via existing task edit UI using updateTaskProject and refresh task data afterward.",
       "acceptanceCriteria": [
-        "Opening a task shows a full-page view with a clearly visible top bar (close button, project badge, Save button) and a solid background behind content.",
-        "Task title input text is visible and readable, and metadata controls (due date, priority) are readable and clickable.",
-        "The long-form editor area (Quill) has readable text, a visible toolbar, and a visible editor canvas (not transparent on the page background).",
-        "Scrolling within the Task Page works and content is not clipped by overflow/z-index issues."
+        "From an existing task edit surface that shows a Project selector, changing the project and saving persists the new project assignment.",
+        "Unassigned tasks show no project badge/label until a project is assigned.",
+        "Assigning a project to an unassigned task updates task lists/drawer display after save (via React Query invalidation/refetch)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/TaskPage.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Adjust Task Page layout classNames to ensure the top bar and content area use solid surfaces (bg-card/bg-background), readable foreground colors, and appropriate borders. Confirm overflow/scrolling works (content scrolls, no clipping) while keeping interactions (close/save, due date popover, priority select) clearly visible. (Uses shadcn-ui Button/Input/Badge/Popover/Select components; Verify the component's usage instructions before implementing.)"
+          "description": "Add a React Query mutation hook for persisting task project changes using the backend capability updateTaskProject (accepting newProjectId as bigint or null) and invalidate/refetch relevant queries (tasks lists and the single-task query) on success/settled."
         },
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/components/TaskEditDialog.tsx",
           "operation": "modify",
-          "description": "Strengthen dark-theme Quill styling under .long-form-editor so the toolbar, icons, editor canvas, placeholder, and text remain readable on dark surfaces (e.g., ensure non-transparent backgrounds, appropriate border colors, and correct text/icon colors). (Uses ReactQuill 'snow' theme + Tailwind variable theming; Verify the component's usage instructions before implementing.)"
+          "description": "Make the Project selector support an unassigned state (no selection) without crashing when task.projectId is missing; on save, persist core fields via useUpdateTask and persist project changes via the new useUpdateTaskProject hook (including assigning a project to an unassigned task, or clearing assignment), then close and rely on query invalidation to refresh visible task lists/drawer."
+        },
+        {
+          "path": "frontend/src/components/TaskCard.tsx",
+          "operation": "modify",
+          "description": "Harden project badge lookup to handle tasks with no projectId (avoid calling toString on undefined) and ensure unassigned tasks display no project badge/label."
         }
       ]
     }

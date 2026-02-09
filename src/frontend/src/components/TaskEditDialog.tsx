@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Task } from '../backend';
-import { useUpdateTask, useGetAllProjects } from '../hooks/useQueries';
+import { useUpdateTask, useUpdateTaskProject, useGetAllProjects } from '../hooks/useQueries';
 import {
   Dialog,
   DialogContent,
@@ -27,11 +27,14 @@ interface TaskEditDialogProps {
 
 export default function TaskEditDialog({ open, onOpenChange, task }: TaskEditDialogProps) {
   const updateTask = useUpdateTask();
+  const updateTaskProject = useUpdateTaskProject();
   const { data: projects } = useGetAllProjects();
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || '');
   const [dueDate, setDueDate] = useState<Date>(new Date(Number(task.dueDate) / 1000000));
-  const [selectedProjectId, setSelectedProjectId] = useState<string>(task.projectId.toString());
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    task.projectId ? task.projectId.toString() : null
+  );
   const [priority, setPriority] = useState<'forge' | 'queue'>((task.priority || 'queue') as 'forge' | 'queue');
 
   useEffect(() => {
@@ -39,14 +42,14 @@ export default function TaskEditDialog({ open, onOpenChange, task }: TaskEditDia
       setTitle(task.title);
       setDescription(task.description || '');
       setDueDate(new Date(Number(task.dueDate) / 1000000));
-      setSelectedProjectId(task.projectId.toString());
+      setSelectedProjectId(task.projectId ? task.projectId.toString() : null);
       setPriority((task.priority || 'queue') as 'forge' | 'queue');
     }
   }, [open, task]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (title.trim() && selectedProjectId) {
+    if (title.trim()) {
       await updateTask.mutateAsync({
         taskId: task.id,
         title: title.trim(),
@@ -54,52 +57,65 @@ export default function TaskEditDialog({ open, onOpenChange, task }: TaskEditDia
         dueDate: BigInt(dueDate.getTime() * 1000000),
         priority,
       });
+
+      const originalProjectId = task.projectId ? task.projectId.toString() : null;
+      if (selectedProjectId !== originalProjectId) {
+        await updateTaskProject.mutateAsync({
+          taskId: task.id,
+          projectId: selectedProjectId ? BigInt(selectedProjectId) : null,
+        });
+      }
+
       onOpenChange(false);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[540px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px] bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-xl text-foreground">Edit Task</DialogTitle>
+          <DialogTitle className="text-card-foreground">Edit Task</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-5 pt-2">
-          <div className="space-y-2.5">
-            <Label htmlFor="title" className="text-sm font-medium text-foreground">Title</Label>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title" className="text-card-foreground">
+              Title
+            </Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Task title"
+              className="bg-background text-foreground"
               required
-              className="h-11"
             />
           </div>
 
-          <div className="space-y-2.5">
-            <Label htmlFor="description" className="text-sm font-medium text-foreground">Description</Label>
+          <div className="space-y-2">
+            <Label htmlFor="description" className="text-card-foreground">
+              Description
+            </Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add details about this task..."
-              rows={4}
-              className="resize-none"
+              placeholder="Task description (optional)"
+              className="min-h-[100px] bg-background text-foreground"
             />
           </div>
 
-          <div className="space-y-2.5">
-            <Label htmlFor="project" className="text-sm font-medium text-foreground">Project</Label>
-            <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
-              <SelectTrigger id="project" className="h-11">
-                <SelectValue placeholder="Select a project" />
+          <div className="space-y-2">
+            <Label className="text-card-foreground">Project</Label>
+            <Select value={selectedProjectId || 'none'} onValueChange={(value) => setSelectedProjectId(value === 'none' ? null : value)}>
+              <SelectTrigger className="bg-background text-foreground">
+                <SelectValue placeholder="Select project (optional)" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none">No project</SelectItem>
                 {projects?.map((project) => (
                   <SelectItem key={project.id.toString()} value={project.id.toString()}>
                     <div className="flex items-center gap-2">
-                      <span style={{ color: project.color }}>{project.icon}</span>
+                      <span>{project.icon}</span>
                       <span>{project.name}</span>
                     </div>
                   </SelectItem>
@@ -108,60 +124,76 @@ export default function TaskEditDialog({ open, onOpenChange, task }: TaskEditDia
             </Select>
           </div>
 
-          <div className="space-y-2.5">
-            <Label htmlFor="priority" className="text-sm font-medium text-foreground">Priority</Label>
-            <Select value={priority} onValueChange={(value) => setPriority(value as 'forge' | 'queue')}>
-              <SelectTrigger id="priority" className="h-11">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="forge">
-                  <div className="flex items-center gap-2">
-                    <Flame className="h-4 w-4 text-orange-500" />
-                    <span>Forge (High Priority)</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="queue">
-                  <div className="flex items-center gap-2">
-                    <ListTodo className="h-4 w-4 text-blue-500" />
-                    <span>Queue (Normal Priority)</span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="space-y-2">
+            <Label className="text-card-foreground">Priority</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant={priority === 'forge' ? 'default' : 'outline'}
+                className={cn(
+                  'justify-start',
+                  priority === 'forge' && 'bg-orange-500 hover:bg-orange-600 text-white'
+                )}
+                onClick={() => setPriority('forge')}
+              >
+                <Flame className="mr-2 h-4 w-4" />
+                Forge
+              </Button>
+              <Button
+                type="button"
+                variant={priority === 'queue' ? 'default' : 'outline'}
+                className={cn(
+                  'justify-start',
+                  priority === 'queue' && 'bg-blue-500 hover:bg-blue-600 text-white'
+                )}
+                onClick={() => setPriority('queue')}
+              >
+                <ListTodo className="mr-2 h-4 w-4" />
+                Queue
+              </Button>
+            </div>
           </div>
 
-          <div className="space-y-2.5">
-            <Label className="text-sm font-medium text-foreground">Due Date</Label>
+          <div className="space-y-2">
+            <Label className="text-card-foreground">Due Date</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className={cn('w-full justify-start text-left font-normal h-11 text-foreground')}
+                  className={cn(
+                    'w-full justify-start text-left font-normal bg-background text-foreground',
+                    !dueDate && 'text-muted-foreground'
+                  )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(dueDate, 'PPP')}
+                  {dueDate ? format(dueDate, 'PPP') : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={dueDate} onSelect={(date) => date && setDueDate(date)} />
+              <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dueDate}
+                  onSelect={(date) => date && setDueDate(date)}
+                  initialFocus
+                />
               </PopoverContent>
             </Popover>
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="h-11">
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={updateTask.isPending || updateTaskProject.isPending}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={!title.trim() || !selectedProjectId || updateTask.isPending} className="h-11">
-              {updateTask.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Changes'
+            <Button type="submit" disabled={updateTask.isPending || updateTaskProject.isPending}>
+              {(updateTask.isPending || updateTaskProject.isPending) && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
+              Save Changes
             </Button>
           </DialogFooter>
         </form>

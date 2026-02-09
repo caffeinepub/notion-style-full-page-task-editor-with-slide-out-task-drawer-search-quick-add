@@ -35,7 +35,7 @@ export const Task = IDL.Record({
   'dueDate' : Time,
   'description' : IDL.Opt(IDL.Text),
   'longFormContent' : IDL.Opt(IDL.Text),
-  'projectId' : ProjectId,
+  'projectId' : IDL.Opt(ProjectId),
   'priority' : IDL.Text,
 });
 export const TimePeriodStats = IDL.Record({
@@ -76,7 +76,7 @@ export const idlService = IDL.Service({
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createProject' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [ProjectId], []),
   'createTask' : IDL.Func(
-      [IDL.Text, IDL.Opt(IDL.Text), Time, ProjectId, IDL.Text],
+      [IDL.Text, IDL.Opt(IDL.Text), Time, IDL.Opt(ProjectId), IDL.Text],
       [TaskId],
       [],
     ),
@@ -114,7 +114,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'updateTaskContent' : IDL.Func([TaskId, IDL.Text], [], []),
-  'updateTaskProject' : IDL.Func([TaskId, ProjectId], [], []),
+  'updateTaskProject' : IDL.Func([TaskId, IDL.Opt(ProjectId)], [], []),
 });
 
 export const idlInitArgs = [];
@@ -147,7 +147,7 @@ export const idlFactory = ({ IDL }) => {
     'dueDate' : Time,
     'description' : IDL.Opt(IDL.Text),
     'longFormContent' : IDL.Opt(IDL.Text),
-    'projectId' : ProjectId,
+    'projectId' : IDL.Opt(ProjectId),
     'priority' : IDL.Text,
   });
   const TimePeriodStats = IDL.Record({
@@ -188,7 +188,7 @@ export const idlFactory = ({ IDL }) => {
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createProject' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [ProjectId], []),
     'createTask' : IDL.Func(
-        [IDL.Text, IDL.Opt(IDL.Text), Time, ProjectId, IDL.Text],
+        [IDL.Text, IDL.Opt(IDL.Text), Time, IDL.Opt(ProjectId), IDL.Text],
         [TaskId],
         [],
       ),
@@ -230,7 +230,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'updateTaskContent' : IDL.Func([TaskId, IDL.Text], [], []),
-    'updateTaskProject' : IDL.Func([TaskId, ProjectId], [], []),
+    'updateTaskProject' : IDL.Func([TaskId, IDL.Opt(ProjectId)], [], []),
   });
 };
 

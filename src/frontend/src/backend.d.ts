@@ -37,7 +37,7 @@ export interface Task {
     dueDate: Time;
     description?: string;
     longFormContent?: string;
-    projectId: ProjectId;
+    projectId?: ProjectId;
     priority: string;
 }
 export interface TimePeriodStats {
@@ -75,7 +75,7 @@ export enum UserRole {
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createProject(name: string, color: string, icon: string): Promise<ProjectId>;
-    createTask(title: string, description: string | null, dueDate: Time, projectId: ProjectId, priority: string): Promise<TaskId>;
+    createTask(title: string, description: string | null, dueDate: Time, projectId: ProjectId | null, priority: string): Promise<TaskId>;
     deleteProject(projectId: ProjectId): Promise<void>;
     deleteTask(taskId: TaskId): Promise<void>;
     getAllProjects(): Promise<Array<Project>>;
@@ -98,5 +98,5 @@ export interface backendInterface {
     toggleTaskCompletion(taskId: TaskId): Promise<void>;
     updateTask(taskId: TaskId, title: string, description: string | null, dueDate: Time, priority: string): Promise<void>;
     updateTaskContent(taskId: TaskId, content: string): Promise<void>;
-    updateTaskProject(taskId: TaskId, newProjectId: ProjectId): Promise<void>;
+    updateTaskProject(taskId: TaskId, newProjectId: ProjectId | null): Promise<void>;
 }

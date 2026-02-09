@@ -1,65 +1,76 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T10:15:43.290Z",
+  "generatedAt": "2026-02-09T08:22:45.804Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 4,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-10",
-        "summary": "Fix the Task Drawer (left Sheet) styling so it always displays as a solid, clearly visible panel with correct background, foreground, borders, and layering; the search input, quick-add input, buttons, and task list items must be visible and interactable.",
+        "id": "REQ-1",
+        "summary": "Update the backend Task model and APIs to support tasks with no project assigned (unassigned tasks), while preserving existing ownership/permission checks and allowing a project to be assigned later.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Add a conditional Motoko migration (backend/migration.mo) to safely upgrade existing deployed state to the updated Task model that supports unassigned tasks (ensuring existing tasks retain their current project assignment).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Change the side-menu quick-add flow in the task drawer (frontend/src/components/TaskDrawer.tsx) so it does not require any projects to exist, does not auto-assign a default project, and creates the task with due date set to today by default.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/TaskDrawer.tsx",
-          "frontend/src/index.css"
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
           "frontend/src/components/TaskDrawer.tsx",
-          "frontend/src/index.css"
+          "frontend/src/hooks/useQueries.ts"
         ]
       },
       {
-        "id": "REQ-11",
-        "summary": "Fix the full-page Task Page styling so the editor route displays a solid, readable layout (top bar + content area) with correct backgrounds and readable text, including the long-form rich text editor area.",
+        "id": "REQ-4",
+        "summary": "Ensure users can assign a project later for an unassigned task via existing task editing UI, by wiring the project selector to the backend API that updates a task’s project (so selecting a project actually persists).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/TaskPage.tsx",
-          "frontend/src/index.css"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/TaskEditDialog.tsx",
+          "frontend/src/components/TaskCard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/TaskPage.tsx",
-          "frontend/src/index.css"
-        ]
-      },
-      {
-        "id": "REQ-9",
-        "summary": "Ensure dark theme CSS variables apply globally so backgrounds, panels, and text colors render correctly across the entire app (including the Task Drawer and full-page Task Page). Do this without modifying any files under frontend/src/hooks/* (immutable paths).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/index.css"
-        ],
-        "matchedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/index.css"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/TaskEditDialog.tsx",
+          "frontend/src/components/TaskCard.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/HistoryPage.tsx",
+    "frontend/src/components/TaskCard.tsx",
     "frontend/src/components/TaskDrawer.tsx",
+    "frontend/src/components/TaskEditDialog.tsx",
     "frontend/src/components/TaskPage.tsx",
-    "frontend/src/index.css",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

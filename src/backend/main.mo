@@ -9,8 +9,9 @@ import Nat "mo:base/Nat";
 import Array "mo:base/Array";
 import Float "mo:base/Float";
 
+import Migration "migration";
 
-
+(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
 
@@ -23,7 +24,6 @@ actor {
   };
 
   public shared ({ caller }) func assignCallerUserRole(user : Principal, role : AccessControl.UserRole) : async () {
-    // Admin-only check happens inside assignRole
     AccessControl.assignRole(accessControlState, caller, user, role);
   };
 
@@ -78,7 +78,7 @@ actor {
     longFormContent : ?Text;
     dueDate : Time.Time;
     completed : Bool;
-    projectId : ProjectId;
+    projectId : ?ProjectId;
     createdAt : Time.Time;
     owner : Principal;
     completionDate : ?Time.Time;
@@ -182,7 +182,7 @@ actor {
 
         let allTasks = Iter.toArray(natMap.entries(tasks));
         for ((taskId, task) in allTasks.vals()) {
-          if (task.projectId == projectId) {
+          if (task.projectId == ?projectId) {
             tasks := natMap.delete(tasks, taskId);
           };
         };
@@ -220,18 +220,14 @@ actor {
     };
   };
 
-  public shared ({ caller }) func createTask(title : Text, description : ?Text, dueDate : Time.Time, projectId : ProjectId, priority : Text) : async TaskId {
+  public shared ({ caller }) func createTask(title : Text, description : ?Text, dueDate : Time.Time, projectId : ?ProjectId, priority : Text) : async TaskId {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Debug.trap("Unauthorized: Only users can create tasks");
     };
 
-    switch (natMap.get(projects, projectId)) {
-      case (null) { Debug.trap("Project not found") };
-      case (?project) {
-        if (not Principal.equal(project.owner, caller) and not AccessControl.isAdmin(accessControlState, caller)) {
-          Debug.trap("Unauthorized: You can only create tasks in your own projects");
-        };
-
+    switch (projectId) {
+      case (null) {
+        // Create task without project
         let taskId = nextTaskId;
         nextTaskId += 1;
 
@@ -242,7 +238,7 @@ actor {
           longFormContent = null;
           dueDate;
           completed = false;
-          projectId;
+          projectId = null;
           createdAt = Time.now();
           owner = caller;
           completionDate = null;
@@ -251,6 +247,36 @@ actor {
 
         tasks := natMap.put(tasks, taskId, task);
         taskId;
+      };
+      case (?validProjectId) {
+        switch (natMap.get(projects, validProjectId)) {
+          case (null) { Debug.trap("Project not found") };
+          case (?project) {
+            if (not Principal.equal(project.owner, caller) and not AccessControl.isAdmin(accessControlState, caller)) {
+              Debug.trap("Unauthorized: You can only create tasks in your own projects");
+            };
+
+            let taskId = nextTaskId;
+            nextTaskId += 1;
+
+            let task : Task = {
+              id = taskId;
+              title;
+              description;
+              longFormContent = null;
+              dueDate;
+              completed = false;
+              projectId = ?validProjectId;
+              createdAt = Time.now();
+              owner = caller;
+              completionDate = null;
+              priority;
+            };
+
+            tasks := natMap.put(tasks, taskId, task);
+            taskId;
+          };
+        };
       };
     };
   };
@@ -286,7 +312,7 @@ actor {
     };
   };
 
-  public shared ({ caller }) func updateTaskProject(taskId : TaskId, newProjectId : ProjectId) : async () {
+  public shared ({ caller }) func updateTaskProject(taskId : TaskId, newProjectId : ?ProjectId) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Debug.trap("Unauthorized: Only users can update tasks");
     };
@@ -298,13 +324,9 @@ actor {
           Debug.trap("Unauthorized: You can only update your own tasks");
         };
 
-        switch (natMap.get(projects, newProjectId)) {
-          case (null) { Debug.trap("Target project not found") };
-          case (?newProject) {
-            if (not Principal.equal(newProject.owner, caller) and not AccessControl.isAdmin(accessControlState, caller)) {
-              Debug.trap("Unauthorized: You can only move tasks to your own projects");
-            };
-
+        switch (newProjectId) {
+          case (null) {
+            // Remove project assignment
             let updatedTask : Task = {
               id = task.id;
               title = task.title;
@@ -312,14 +334,39 @@ actor {
               longFormContent = task.longFormContent;
               dueDate = task.dueDate;
               completed = task.completed;
-              projectId = newProjectId;
+              projectId = null;
               createdAt = task.createdAt;
               owner = task.owner;
               completionDate = task.completionDate;
               priority = task.priority;
             };
-
             tasks := natMap.put(tasks, taskId, updatedTask);
+          };
+          case (?validProjectId) {
+            switch (natMap.get(projects, validProjectId)) {
+              case (null) { Debug.trap("Target project not found") };
+              case (?newProject) {
+                if (not Principal.equal(newProject.owner, caller) and not AccessControl.isAdmin(accessControlState, caller)) {
+                  Debug.trap("Unauthorized: You can only move tasks to your own projects");
+                };
+
+                let updatedTask : Task = {
+                  id = task.id;
+                  title = task.title;
+                  description = task.description;
+                  longFormContent = task.longFormContent;
+                  dueDate = task.dueDate;
+                  completed = task.completed;
+                  projectId = ?validProjectId;
+                  createdAt = task.createdAt;
+                  owner = task.owner;
+                  completionDate = task.completionDate;
+                  priority = task.priority;
+                };
+
+                tasks := natMap.put(tasks, taskId, updatedTask);
+              };
+            };
           };
         };
       };
@@ -440,7 +487,7 @@ actor {
         };
 
         let allTasks = Iter.toArray(natMap.vals(tasks));
-        Array.filter<Task>(allTasks, func(task) { task.projectId == projectId });
+        Array.filter<Task>(allTasks, func(task) { task.projectId == ?projectId });
       };
     };
   };
@@ -588,7 +635,7 @@ actor {
     let projectStats = Array.map<Project, ProjectStats>(
       userProjects,
       func(project) {
-        let projectTasks = Array.filter<Task>(userTasks, func(task) { task.projectId == project.id });
+        let projectTasks = Array.filter<Task>(userTasks, func(task) { task.projectId == ?project.id });
         let completedTasks = Array.filter<Task>(projectTasks, func(task) { task.completed });
         let overdueTasks = Array.filter<Task>(projectTasks, func(task) { not task.completed and task.dueDate < now });
 

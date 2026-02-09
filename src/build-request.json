@@ -1,79 +1,100 @@
 {
   "kind": "build_request",
-  "title": "Fix CSS/theme regression so task drawer and full-page task editor are visible and usable",
-  "priority": "high",
+  "title": "Make side-menu quick-add create tasks without a project and default due date to today",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-9",
-      "text": "Ensure dark theme CSS variables apply globally so backgrounds, panels, and text colors render correctly across the entire app (including the Task Drawer and full-page Task Page). Do this without modifying any files under frontend/src/hooks/* (immutable paths).",
-      "target": "frontend",
+      "id": "REQ-1",
+      "text": "Update the backend Task model and APIs to support tasks with no project assigned (unassigned tasks), while preserving existing ownership/permission checks and allowing a project to be assigned later.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-7",
+          "msg-8",
+          "msg-9"
         ],
         "quotes": [
-          "Side menu, new tasks, quick adds, task page ect are all invisible and UI is not looking good. They appear just I cannot see nothing",
-          "Man, everything needs to be displayed and visible for interaction, solid panel. Fix the colours and backgrounds"
+          "shouldnt be mandatory to add a project to the task, the quick add tasks shouldnt be created with a project."
         ]
       },
       "acceptanceCriteria": [
-        "When authenticated, the app background uses the intended dark theme (not a light/unstyled page) on every section (Calendar, Projects, Overview, History, Task Page).",
-        "Text, borders, and muted surfaces (bg-background/bg-card/bg-muted, text-foreground/text-muted-foreground) have sufficient contrast and are readable without selecting text.",
-        "Implementation does not require editing any immutable hook files (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, etc.)."
+        "Backend can create a task without providing a valid existing project ID.",
+        "Existing task creation with a project continues to work as before.",
+        "Backend provides an API to assign/move a task to a project after creation (may reuse/extend existing updateTaskProject behavior).",
+        "All permission/ownership checks remain enforced for creating tasks and assigning/moving tasks to projects."
       ]
     },
     {
-      "id": "REQ-10",
-      "text": "Fix the Task Drawer (left Sheet) styling so it always displays as a solid, clearly visible panel with correct background, foreground, borders, and layering; the search input, quick-add input, buttons, and task list items must be visible and interactable.",
-      "target": "frontend",
+      "id": "REQ-2",
+      "text": "Add a conditional Motoko migration (backend/migration.mo) to safely upgrade existing deployed state to the updated Task model that supports unassigned tasks (ensuring existing tasks retain their current project assignment).",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-7",
+          "msg-8",
+          "msg-9"
         ],
         "quotes": [
-          "Side menu invisible I just can see some text in black",
-          "No background so its not displaying correctly and can't view the content",
-          "solid panel. Fix the colours and backgrounds"
+          "the quick add tasks shouldnt be created with a project."
         ]
       },
       "acceptanceCriteria": [
-        "Toggling the drawer from the top-left menu button shows a solid panel with a non-transparent background (no 'invisible/blank' drawer).",
-        "Drawer header ('Tasks'), search input, quick-add input/button, and the scrollable task list are all visible with appropriate spacing and contrast.",
-        "The drawer content is not hidden behind other layout layers (no z-index/overlay issues preventing interaction).",
-        "Task list items have visible hover/focus states and readable priority icons (avoid low-contrast icon colors on the chosen background)."
+        "On upgrade, existing tasks keep their previous project assignment values.",
+        "No data loss occurs for projects, tasks, or user data after upgrade.",
+        "If no schema/state changes are ultimately needed, migration is not generated (conditional migration policy)."
       ]
     },
     {
-      "id": "REQ-11",
-      "text": "Fix the full-page Task Page styling so the editor route displays a solid, readable layout (top bar + content area) with correct backgrounds and readable text, including the long-form rich text editor area.",
+      "id": "REQ-3",
+      "text": "Change the side-menu quick-add flow in the task drawer (frontend/src/components/TaskDrawer.tsx) so it does not require any projects to exist, does not auto-assign a default project, and creates the task with due date set to today by default.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-7",
+          "msg-8",
+          "msg-9"
         ],
         "quotes": [
-          "task page ect are all invisible",
-          "Specific routes",
-          "No background so its not displaying correctly and can't view the content"
+          "shouldnt be mandatory to add a project to the task, the quick add tasks shouldnt be created with a project.",
+          "make sure the quick creation is fast and effective, and that it creates on the same date as today",
+          "1- its the feature you added on the isde menu"
         ]
       },
       "acceptanceCriteria": [
-        "Opening a task shows a full-page view with a clearly visible top bar (close button, project badge, Save button) and a solid background behind content.",
-        "Task title input text is visible and readable, and metadata controls (due date, priority) are readable and clickable.",
-        "The long-form editor area (Quill) has readable text, a visible toolbar, and a visible editor canvas (not transparent on the page background).",
-        "Scrolling within the Task Page works and content is not clipped by overflow/z-index issues."
+        "Quick-add works even when the user has zero projects.",
+        "Quick-added tasks are created with no project assigned (not auto-assigned to the first project).",
+        "Quick-added tasks default to today’s date (not tomorrow).",
+        "Submitting quick-add clears the input and remains a single-step, fast interaction (Enter or button)."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Ensure users can assign a project later for an unassigned task via existing task editing UI, by wiring the project selector to the backend API that updates a task’s project (so selecting a project actually persists).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-8"
+        ],
+        "quotes": [
+          "i can add projects later"
+        ]
+      },
+      "acceptanceCriteria": [
+        "From an existing task edit surface that shows a Project selector, changing the project and saving persists the new project assignment.",
+        "Unassigned tasks show no project badge/label until a project is assigned.",
+        "Assigning a project to an unassigned task updates task lists/drawer display after save (via React Query invalidation/refetch)."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files in frontend immutablePaths (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*). Compose around them instead.",
-    "Keep the backend unchanged; this request is a UI/CSS visibility regression fix only.",
-    "Use English for any user-facing text."
+    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo).",
+    "Generate backend/migration.mo only if required for a state upgrade (conditional migration policy).",
+    "Do not modify files under frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui."
   ],
   "nonGoals": [
-    "Adding new task features or changing task data models/APIs.",
-    "Implementing new authentication providers or any non-Internet-Identity auth changes.",
-    "Redesigning unrelated screens beyond what is necessary to restore visibility/contrast for the drawer and task page."
+    "Redesigning the overall task/project UX beyond fixing quick-add project requirement and default date behavior.",
+    "Adding third-party integrations or authentication beyond Internet Identity.",
+    "Implementing real-time sync or push updates."
   ],
   "imageRequirements": {
     "required": [],

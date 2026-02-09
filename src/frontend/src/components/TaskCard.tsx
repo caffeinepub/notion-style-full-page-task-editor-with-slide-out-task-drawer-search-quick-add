@@ -44,7 +44,7 @@ export default function TaskCard({ task, isDragging, dragHandleProps, isOverdue,
   };
 
   const dueDate = new Date(Number(task.dueDate) / 1000000);
-  const project = projects?.find((p) => p.id.toString() === task.projectId.toString());
+  const project = task.projectId ? projects?.find((p) => p.id.toString() === task.projectId?.toString()) : null;
   const priority = task.priority || 'queue';
 
   return (
