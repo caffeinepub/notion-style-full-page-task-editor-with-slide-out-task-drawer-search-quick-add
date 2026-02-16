@@ -1,28 +1,46 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "Project is focused on enabling full PWA functionality for an existing React + Vite frontend (currently missing service worker setup and Vite config for PWA tooling).",
   "architectural_notes": [
-    "Use optimistic UI updates for task/habit completion to avoid UI reverting briefly (flicker) while awaiting server confirmation."
+    "Frontend is a React + Vite app (e.g., frontend/src/App.tsx, frontend/src/main.tsx, frontend/index.html).",
+    "Vite config file (vite.config.ts/js) is needed to add PWA tooling (e.g., vite-plugin-pwa) and register the service worker."
   ],
   "known_issues": [
-    "Checking a task/habit briefly flickers back to the previous state before settling, across all checkable locations."
+    "Previous attempt to generate/enable PWA setup failed with an error: \"AI couldn't process your request successfully\"; user requested retry to complete remaining PWA build steps."
   ],
   "isFixRequest": true,
+  "imageRequirements": "## Required Images\n- App icon PNG, 192x192 (impact-forge-icon.dim_192x192.png)\n- App icon PNG, 512x512 (impact-forge-icon.dim_512x512.png)",
   "existing_features": [
     {
-      "id": "feature-eliminate-the-completion-toggle-flicker-by-making-task-completion-changes-apply-immediately-optimistic-ui-across-all-ui-locations-that-can-mark-a-task-complete-incomplete-e-g-taskcard-in-day-week-month-views-and-any-other-list-using-react-query-task-caches",
-      "title": "Eliminate the completion-toggle flicker by making task completion changes apply immediately (optimistic UI) across all UI locations that can mark a task complete/incomplete (e.g., TaskCard in Day/Week/Month views and any other list using React Query task caches).",
+      "id": "feature-ensure-the-vite-build-outputs-a-real-service-worker-file-at-exactly-service-worker-js-because-the-app-registers-navigator-serviceworker-register-service-worker-js-compiling-the-existing-frontend-public-service-worker-ts-into-javascript-as-part-of-the-frontend-build",
+      "title": "Ensure the Vite build outputs a real service worker file at exactly `/service-worker.js` (because the app registers `navigator.serviceWorker.register('/service-worker.js')`), compiling the existing `frontend/public/service-worker.ts` into JavaScript as part of the frontend build.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-the-react-query-optimistic-update-logic-for-completion-toggling-so-that-it-synchronously-updates-all-relevant-cached-queries-all-queries-whose-keys-start-with-tasks-and-the-individual-task-taskid-cache-if-present-before-any-potential-refetch-overwrite-can-cause-a-brief-reversion",
-      "title": "Update the React Query optimistic update logic for completion toggling so that it synchronously updates all relevant cached queries (all queries whose keys start with ['tasks', ...] and the individual ['task', taskId] cache if present) before any potential refetch/overwrite can cause a brief reversion.",
+      "id": "feature-add-or-update-the-vite-configuration-file-vite-config-to-support-pwa-service-worker-bundling-and-asset-handling-needed-for-installability-offline-support-without-changing-existing-react-app-runtime-behavior",
+      "title": "Add or update the Vite configuration file (vite.config.*) to support PWA service worker bundling and asset handling needed for installability/offline support, without changing existing React app runtime behavior.",
       "reqIds": [
         "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-pwa-manifest-icon-correctness-by-providing-proper-png-icon-assets-at-common-required-sizes-and-updating-frontend-public-manifest-json-to-reference-the-correct-sizes-do-not-reuse-a-200x200-image-for-512x512",
+      "title": "Fix PWA manifest icon correctness by providing proper PNG icon assets at common required sizes and updating `frontend/public/manifest.json` to reference the correct sizes (do not reuse a 200x200 image for 512x512).",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-offline-behavior-is-coherent-the-service-worker-should-precache-the-app-shell-at-minimum-and-index-html-and-manifest-json-and-provide-a-navigation-fallback-when-offline-while-continuing-to-avoid-caching-canister-api-calls-as-it-currently-does",
+      "title": "Verify offline behavior is coherent: the service worker should precache the app shell (at minimum `/` and `/index.html` and `manifest.json`) and provide a navigation fallback when offline, while continuing to avoid caching canister/API calls as it currently does.",
+      "reqIds": [
+        "REQ-4"
       ],
       "version": 1
     }
@@ -30,12 +48,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Fix checkbox/task/habit completion flicker by implementing reliable optimistic UI updates across all places where items can be checked",
+      "summary": "Enable full PWA support (service worker registration, offline caching, manifest/icons, installability) for the existing Vite + React frontend without breaking current functionality",
       "reqIds": [],
-      "status": "pending"
+      "status": "in_progress"
     }
   ],
-  "projectName": "Fix task completion checkbox flicker with reliable optimistic updates",
+  "projectName": "Finish full PWA enablement (service worker build + installability) without breaking existing functionality",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

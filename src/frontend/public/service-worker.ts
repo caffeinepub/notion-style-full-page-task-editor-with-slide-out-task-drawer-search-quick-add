@@ -10,6 +10,8 @@ const PRECACHE_ASSETS = [
   '/manifest.json',
   '/assets/generated/favicon-blue-flame-transparent.dim_32x32.png',
   '/assets/generated/impact-forge-icon-transparent.dim_200x200.png',
+  '/assets/generated/impact-forge-icon.dim_192x192.png',
+  '/assets/generated/impact-forge-icon.dim_512x512.png',
 ];
 
 const sw = self as unknown as ServiceWorkerGlobalScope;

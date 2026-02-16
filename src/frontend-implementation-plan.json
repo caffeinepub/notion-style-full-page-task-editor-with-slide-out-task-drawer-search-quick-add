@@ -1,41 +1,94 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix task completion checkbox flicker via robust React Query optimistic updates",
+  "title": "Complete PWA enablement with correct service worker build output and installability assets",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Ensure task completion toggles update immediately (optimistic UI) without flicker anywhere tasks are checked/unchecked.",
+      "summary": "Bundle the existing TypeScript service worker into a production JavaScript file served at /service-worker.js.",
       "acceptanceCriteria": [
-        "When clicking a task completion checkbox, the checkbox and any completion-dependent styling (e.g., strikethrough/opacity) updates immediately and does not visually revert to the previous state at any point.",
-        "The fix applies consistently anywhere tasks can be checked/unchecked (not just a single page/component)."
+        "After a production build, the deployed site serves a JavaScript service worker at `/service-worker.js` (not a TypeScript file).",
+        "The existing service worker registration in `frontend/src/App.tsx` succeeds (no 404 / MIME-type errors in console).",
+        "Existing app functionality (auth, navigation, queries/mutations) remains unchanged."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Harden useToggleTaskCompletion optimistic update behavior so UI state flips immediately and remains stable while the mutation is in-flight: (1) synchronously apply optimistic changes, (2) cancel in-flight task-related queries to prevent overwrites, (3) rollback on error, (4) refetch after settle to reconcile with backend."
+          "path": "frontend/vite.config.ts",
+          "operation": "create",
+          "description": "Add Vite build configuration that compiles `frontend/public/service-worker.ts` into a JavaScript build artifact emitted at the site root as `service-worker.js`, ensuring the runtime registration in `frontend/src/App.tsx` continues to register `/service-worker.js` successfully."
         },
         {
-          "path": "frontend/src/components/TaskCard.tsx",
+          "path": "frontend/public/service-worker.ts",
           "operation": "modify",
-          "description": "Update TaskCard completion toggle invocation to provide enough information for reliable optimistic updates (e.g., current/next completion state) and ensure the checkbox + completion styling are driven by React Query cache state without any intermediate revert."
+          "description": "Adjust the service worker source (if needed for bundling) so it can be compiled by Vite into a root-level `service-worker.js` without changing runtime behavior (keep existing caching intent; avoid adding app logic changes)."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Update optimistic completion toggling to synchronously update all task-related React Query caches (all ['tasks', ...] queries and ['task', taskId]) and rollback correctly on failure.",
+      "summary": "Add/update Vite configuration to support PWA bundling and asset handling required for installability/offline while preserving existing React runtime behavior.",
       "acceptanceCriteria": [
-        "Toggling completion updates cached task data for: (1) all task list queries (dateRange, project, completion, history, etc. where applicable) and (2) the single-task query cache when it exists.",
-        "No intermediate render occurs where the UI shows the old completion state after the click while the mutation is in-flight.",
-        "If the mutation fails, the UI rolls back to the previous state and remains consistent with the server after the subsequent refetch."
+        "A `vite.config` file exists and the frontend build completes successfully.",
+        "The build process includes the service worker output described in REQ-1.",
+        "No changes are required to immutable hook files (Internet Identity/actor hooks)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/vite.config.ts",
           "operation": "modify",
-          "description": "Revise useToggleTaskCompletion onMutate to synchronously update all relevant caches before any refetch can overwrite: update every cached query whose key starts with ['tasks', ...] (including completion/history variants) and also update ['task', taskId] when present; cancel in-flight queries for both ['tasks'] and ['task', taskId] to prevent stale writes; store snapshots for rollback; onError restore snapshots; onSettled invalidate/refetch relevant task queries so final state matches backend."
+          "description": "Extend the Vite configuration to include PWA-related build handling (service worker entry output naming/location, and public asset passthrough for manifest/icons) while keeping existing React runtime behavior unchanged and avoiding edits to immutable hook files."
+        },
+        {
+          "path": "frontend/index.html",
+          "operation": "modify",
+          "description": "Confirm/adjust PWA-related tags (manifest link, theme-color, icons) to remain compatible with the updated manifest/icon set and Vite build output, without changing app runtime behavior."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Provide correct PNG manifest icons at common required sizes and update manifest.json to reference true dimensions (keep existing 32x32 favicon working).",
+      "acceptanceCriteria": [
+        "`frontend/public/manifest.json` includes at least 192x192 and 512x512 PNG icons whose `sizes` match the real image dimensions.",
+        "PWA install prompt/installability checks no longer report missing/invalid icon sizes for the manifest icons.",
+        "Existing referenced 32x32 favicon continues to work."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/public/assets/generated/impact-forge-icon.dim_192x192.png",
+          "operation": "create",
+          "description": "Add generated app icon PNG asset at 192x192: `frontend/public/assets/generated/impact-forge-icon.dim_192x192.png`."
+        },
+        {
+          "path": "frontend/public/assets/generated/impact-forge-icon.dim_512x512.png",
+          "operation": "create",
+          "description": "Add generated app icon PNG asset at 512x512: `frontend/public/assets/generated/impact-forge-icon.dim_512x512.png`."
+        },
+        {
+          "path": "frontend/public/manifest.json",
+          "operation": "modify",
+          "description": "Update manifest icon entries to reference the correct PNGs and real sizes, including `frontend/public/assets/generated/impact-forge-icon.dim_192x192.png` (sizes: 192x192) and `frontend/public/assets/generated/impact-forge-icon.dim_512x512.png` (sizes: 512x512), while keeping the existing 32x32 favicon entry intact."
+        },
+        {
+          "path": "frontend/index.html",
+          "operation": "modify",
+          "description": "Update the apple-touch-icon link (and any other icon links as appropriate) to reference a correct-size PNG from the generated set, while keeping the existing favicon link working."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Ensure coherent offline behavior: precache app shell and provide navigation fallback while keeping canister/API requests network-only and cleaning up old caches on activate.",
+      "acceptanceCriteria": [
+        "With network offline, reloading the app returns a cached app shell (or the defined offline fallback) instead of a browser error page.",
+        "Requests that are canister/API-related are not cached by the service worker and continue to be network-only when online.",
+        "Cache versioning/cleanup works (old cache names are removed on activate)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/public/service-worker.ts",
+          "operation": "modify",
+          "description": "Update precache and navigation handling to guarantee an offline app-shell experience (at minimum `/`, `/index.html`, and `/manifest.json`) with a clear navigation fallback when offline; ensure canister/API-related requests remain network-only (not cached); and ensure cache versioning/cleanup removes old cache names on activate. Also update precached icon paths to include `frontend/public/assets/generated/impact-forge-icon.dim_192x192.png` and `frontend/public/assets/generated/impact-forge-icon.dim_512x512.png`."
         }
       ]
     }

@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-eliminate-the-completion-toggle-flicker-by-making-task-completion-changes-apply-immediately-optimistic-ui-across-all-ui-locations-that-can-mark-a-task-complete-incomplete-e-g-taskcard-in-day-week-month-views-and-any-other-list-using-react-query-task-caches",
-      "featureTitle": "Eliminate the completion-toggle flicker by making task completion changes apply immediately (optimistic UI) across all UI locations that can mark a task complete/incomplete (e.g., TaskCard in Day/Week/Month views and any other list using React Query task caches).",
+      "featureId": "feature-ensure-the-vite-build-outputs-a-real-service-worker-file-at-exactly-service-worker-js-because-the-app-registers-navigator-serviceworker-register-service-worker-js-compiling-the-existing-frontend-public-service-worker-ts-into-javascript-as-part-of-the-frontend-build",
+      "featureTitle": "Ensure the Vite build outputs a real service worker file at exactly `/service-worker.js` (because the app registers `navigator.serviceWorker.register('/service-worker.js')`), compiling the existing `frontend/public/service-worker.ts` into JavaScript as part of the frontend build.",
       "files": [
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/public/service-worker.ts",
+        "frontend/vite.config.ts"
       ],
       "components": [
         "authorization@1.0.1",
@@ -21,10 +22,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-react-query-optimistic-update-logic-for-completion-toggling-so-that-it-synchronously-updates-all-relevant-cached-queries-all-queries-whose-keys-start-with-tasks-and-the-individual-task-taskid-cache-if-present-before-any-potential-refetch-overwrite-can-cause-a-brief-reversion",
-      "featureTitle": "Update the React Query optimistic update logic for completion toggling so that it synchronously updates all relevant cached queries (all queries whose keys start with ['tasks', ...] and the individual ['task', taskId] cache if present) before any potential refetch/overwrite can cause a brief reversion.",
+      "featureId": "feature-add-or-update-the-vite-configuration-file-vite-config-to-support-pwa-service-worker-bundling-and-asset-handling-needed-for-installability-offline-support-without-changing-existing-react-app-runtime-behavior",
+      "featureTitle": "Add or update the Vite configuration file (vite.config.*) to support PWA service worker bundling and asset handling needed for installability/offline support, without changing existing React app runtime behavior.",
       "files": [
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/index.html",
+        "frontend/vite.config.ts"
       ],
       "components": [
         "authorization@1.0.1",
@@ -36,6 +38,45 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-fix-pwa-manifest-icon-correctness-by-providing-proper-png-icon-assets-at-common-required-sizes-and-updating-frontend-public-manifest-json-to-reference-the-correct-sizes-do-not-reuse-a-200x200-image-for-512x512",
+      "featureTitle": "Fix PWA manifest icon correctness by providing proper PNG icon assets at common required sizes and updating `frontend/public/manifest.json` to reference the correct sizes (do not reuse a 200x200 image for 512x512).",
+      "files": [
+        "frontend/index.html",
+        "frontend/public/manifest.json"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-verify-offline-behavior-is-coherent-the-service-worker-should-precache-the-app-shell-at-minimum-and-index-html-and-manifest-json-and-provide-a-navigation-fallback-when-offline-while-continuing-to-avoid-caching-canister-api-calls-as-it-currently-does",
+      "featureTitle": "Verify offline behavior is coherent: the service worker should precache the app shell (at minimum `/` and `/index.html` and `manifest.json`) and provide a navigation fallback when offline, while continuing to avoid caching canister/API calls as it currently does.",
+      "files": [
+        "frontend/public/service-worker.ts"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }

@@ -1,54 +1,107 @@
 {
   "kind": "build_request",
-  "title": "Fix task completion checkbox flicker with reliable optimistic updates",
+  "title": "Finish full PWA enablement (service worker build + installability) without breaking existing functionality",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Eliminate the completion-toggle flicker by making task completion changes apply immediately (optimistic UI) across all UI locations that can mark a task complete/incomplete (e.g., TaskCard in Day/Week/Month views and any other list using React Query task caches).",
+      "text": "Ensure the Vite build outputs a real service worker file at exactly `/service-worker.js` (because the app registers `navigator.serviceWorker.register('/service-worker.js')`), compiling the existing `frontend/public/service-worker.ts` into JavaScript as part of the frontend build.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "i click, it changes as it should, it flickers to the original, then returns to what should be, so i want to remove this flicker brother"
+          "Can you try again building what's left for pwa?"
         ]
       },
       "acceptanceCriteria": [
-        "When clicking a task completion checkbox, the checkbox and any completion-dependent styling (e.g., strikethrough/opacity) updates immediately and does not visually revert to the previous state at any point.",
-        "The fix applies consistently anywhere tasks can be checked/unchecked (not just a single page/component)."
+        "After a production build, the deployed site serves a JavaScript service worker at `/service-worker.js` (not a TypeScript file).",
+        "The existing service worker registration in `frontend/src/App.tsx` succeeds (no 404 / MIME-type errors in console).",
+        "Existing app functionality (auth, navigation, queries/mutations) remains unchanged."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update the React Query optimistic update logic for completion toggling so that it synchronously updates all relevant cached queries (all queries whose keys start with ['tasks', ...] and the individual ['task', taskId] cache if present) before any potential refetch/overwrite can cause a brief reversion.",
+      "text": "Add or update the Vite configuration file (vite.config.*) to support PWA service worker bundling and asset handling needed for installability/offline support, without changing existing React app runtime behavior.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "i want to have optimistic, which i think it should be there already but need to fix it\nHappens on all places"
+          "Do whatever you need to do to enable pwa, just don't break existing functionality"
         ]
       },
       "acceptanceCriteria": [
-        "Toggling completion updates cached task data for: (1) all task list queries (dateRange, project, completion, history, etc. where applicable) and (2) the single-task query cache when it exists.",
-        "No intermediate render occurs where the UI shows the old completion state after the click while the mutation is in-flight.",
-        "If the mutation fails, the UI rolls back to the previous state and remains consistent with the server after the subsequent refetch."
+        "A `vite.config` file exists and the frontend build completes successfully.",
+        "The build process includes the service worker output described in REQ-1.",
+        "No changes are required to immutable hook files (Internet Identity/actor hooks)."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Fix PWA manifest icon correctness by providing proper PNG icon assets at common required sizes and updating `frontend/public/manifest.json` to reference the correct sizes (do not reuse a 200x200 image for 512x512).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Yes enable full functionality of pwa"
+        ]
+      },
+      "acceptanceCriteria": [
+        "`frontend/public/manifest.json` includes at least 192x192 and 512x512 PNG icons whose `sizes` match the real image dimensions.",
+        "PWA install prompt/installability checks no longer report missing/invalid icon sizes for the manifest icons.",
+        "Existing referenced 32x32 favicon continues to work."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Verify offline behavior is coherent: the service worker should precache the app shell (at minimum `/` and `/index.html` and `manifest.json`) and provide a navigation fallback when offline, while continuing to avoid caching canister/API calls as it currently does.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "enable full functionality of pwa"
+        ]
+      },
+      "acceptanceCriteria": [
+        "With network offline, reloading the app returns a cached app shell (or the defined offline fallback) instead of a browser error page.",
+        "Requests that are canister/API-related are not cached by the service worker and continue to be network-only when online.",
+        "Cache versioning/cleanup works (old cache names are removed on activate)."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under frontend immutablePaths (e.g., frontend/src/hooks/useActor.ts, frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/main.tsx, frontend/src/components/ui).",
-    "Backend remains single-actor; do not introduce new canisters/services."
+    "Do not break existing functionality.",
+    "Do not edit files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, or anything under `frontend/src/components/ui` (compose instead if needed).",
+    "Backend remains single-actor; no backend changes are required for PWA enablement."
   ],
   "nonGoals": [
-    "Building a new Habit page or adding new habit features.",
-    "Changing backend task-completion semantics or adding new backend endpoints."
+    "Adding push notifications.",
+    "Adding background sync.",
+    "Adding third-party auth beyond Internet Identity.",
+    "Building a brand new frontend from scratch."
   ],
   "imageRequirements": {
-    "required": [],
+    "required": [
+      "App icon PNG, 192x192 (impact-forge-icon.dim_192x192.png)",
+      "App icon PNG, 512x512 (impact-forge-icon.dim_512x512.png)"
+    ],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }
